@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Study: Stylized Text-to-3D Generation Comparison</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; text-align: center; }
+        .header h1 { margin-bottom: 10px; }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .instructions { background: white; padding: 25px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .instructions h2 { color: #333; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .instructions h3 { color: #555; margin-top: 20px; margin-bottom: 10px; }
+        .instructions p, .instructions li { color: #666; }
+        .instructions ol, .instructions ul { margin-left: 20px; margin-top: 5px; }
+        .instructions li { margin-bottom: 8px; }
+
+        .criteria-section { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #667eea; }
+        .criteria-section h4 { color: #333; margin-bottom: 8px; }
+        .criteria-section p { font-size: 0.95em; }
+
+        .question { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+
+        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .question-number { background: #667eea; color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; }
+        .progress { color: #666; font-size: 0.9em; }
+
+        .prompt { font-size: 1.4em; font-weight: bold; margin-bottom: 20px; color: #333; text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; }
+
+        .style-reference { text-align: center; margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+        .style-reference img { max-height: 250px; border-radius: 8px; border: 3px solid #ddd; }
+        .style-reference p { font-weight: bold; margin-bottom: 10px; color: #555; }
+
+        .image-section { display: flex; gap: 30px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
+        .image-group { flex: 1; min-width: 400px; max-width: 500px; text-align: center; }
+        .method-label { margin-bottom: 10px; }
+        .method-label-left { background: #4CAF50; color: white; padding: 12px 20px; border-radius: 8px; font-size: 1.2em; font-weight: bold; display: inline-block; }
+        .method-label-right { background: #FF9800; color: white; padding: 12px 20px; border-radius: 8px; font-size: 1.2em; font-weight: bold; display: inline-block; }
+
+        .views-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .views-grid img { width: 100%; border-radius: 4px; border: 1px solid #ddd; }
+
+        .criteria-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .criteria-table th, .criteria-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .criteria-table th { background: #f8f9fa; font-weight: bold; }
+        .criteria-table tr:hover { background: #f8f9fa; }
+        .criteria-name { font-weight: 600; color: #333; }
+        .criteria-desc { font-size: 0.85em; color: #666; margin-top: 3px; }
+
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; font-size: 1em; border-radius: 25px; cursor: pointer; transition: transform 0.2s; }
+        .btn:hover { transform: scale(1.05); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #6c757d; }
+
+        .start-section { text-align: center; margin: 40px 0; }
+        .final-page { text-align: center; padding: 50px; }
+        .final-page h2 { color: #28a745; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="page active" id="page0">
+        <div class="header">
+            <h1>User Study: Stylized Text-to-3D Generation Comparison</h1>
+            <p>Please evaluate 3D generation models by comparing renderings</p>
+        </div>
+
+        <div class="instructions">
+            <h2>Task Overview</h2>
+            <p>The task is to compare two 3D models, both generated from similar input information. The input contains two kinds of information separated by a dash: <strong>content information - style attribute</strong>. The object is generated using these two pieces of information. You must decide which one is better according to the provided criteria.</p>
+
+            <h3>Image Layout</h3>
+            <p>I will provide you with a multi-part image divided into two rows and four columns, each of which contains an image. The four images on the left are four renderings of object 1 from different viewpoints, and the four images on the right are four renderings of object 2 from different viewpoints. Examine the multi-part image carefully. Attempt to mentally construct a 3D model of object 1 using the 4-view rendering in the left part. Attempt to mentally construct a 3D model of object 2 using the 4-view rendering in the right part.</p>
+        </div>
+
+        <div class="instructions">
+            <h2>Evaluation Criteria</h2>
+
+            <div class="criteria-section">
+                <h4>1. Text prompt and Model Alignment</h4>
+                <p>Focus on how well the two 3D models correspond to the given text input. An ideal model should accurately reflect what is mentioned in the text prompt, capturing the corresponding attributes as described. Please first describe each of the two models, and then evaluate how well it covers all the attributes in the original text prompt.</p>
+            </div>
+
+            <div class="criteria-section">
+                <h4>2. 3D Plausibility</h4>
+                <p>Determine which of the two 3D models appears more natural, solid, and plausible. Pay attention to any irregularities, such as abnormal body proportions, duplicated parts, or the presence of noisy or meaningless 3D structures. An ideal model should possess accurate proportions, shapes, and structures that closely resemble the real-world object.</p>
+            </div>
+
+            <div class="criteria-section">
+                <h4>3. Geometry-Texture Alignment</h4>
+                <p>This examines how well the texture adheres to the geometry. The texture and shape should align with each other locally.</p>
+            </div>
+
+            <div class="criteria-section">
+                <h4>4. Low-Level Texture Details</h4>
+                <p>Focus on local parts of the renderings. RGB images. Assess which 3D model effectively captures fine details without appearing blurry and which one aligns with the desired aesthetic of the 3D model.</p>
+            </div>
+
+            <div class="criteria-section">
+                <h4>5. Low-Level Geometry Details</h4>
+                <p>The geometry of the 3D models should accurately represent the intended shape. Note that meaningless noise is not considered as high-frequency details. Determine which one has a more well-organized and efficient structure, which one exhibits intricate details, and which one is more visually pleasing and smooth.</p>
+            </div>
+
+            <div class="criteria-section">
+                <h4>6. Overall Quality</h4>
+                <p>Considering all the degrees above, which one is better overall?</p>
+            </div>
+
+            <div class="criteria-section">
+                <h4>7. Style Alignment (for stylized generation)</h4>
+                <p>Our task is to compare two 3D models to see if they match the style of a reference image. Both the 3D models are generated from the same base text description and influenced by the style feature of the reference image.</p>
+                <p>For each 3D model, determine which one has a similar style to the reference image. An ideal model's rendering should have strong commonality with reference image, especially in the colour palette and continuity of tones. For example, the reference image contains fire with intense orange-red tones. Desired object's rendering should also have a similar color and tone as if it's also under fire. While there are subtle differences in flame shape and detailed textures, the overall visual effect is very consistent.</p>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h2>Output Format</h2>
+            <p>For each of the criteria, you need to make a decision using these three options:</p>
+            <ul>
+                <li><strong>Left is better</strong> - Left (object 1) is better</li>
+                <li><strong>Right is better</strong> - Right (object 2) is better</li>
+                <li><strong>Cannot decide</strong> - Both are equal</li>
+            </ul>
+            <p style="margin-top: 10px; color: red;"><strong>IMPORTANT: PLEASE USE "Cannot decide" SPARSELY.</strong></p>
+        </div>
+
+        <div class="start-section">
+            <button class="btn" onclick="startStudy()">Start Study</button>
+        </div>
+    </div>
+
+    <div id="questionPages"></div>
+
+    <div class="page" id="finalPage">
+        <div class="question final-page">
+            <h2>Thank You!</h2>
+            <p>You have completed all questions.</p>
+            <p>Your responses have been saved.</p>
+            <button class="btn" onclick="downloadResults()">Download Results</button>
+        </div>
+    </div>
+
+    <script>
+        const NUM_QUESTIONS = 10;
+        const FIXED_VIEWS = [0, 30, 60, 90];
+
+        const QUESTION_DATA = [
+            { q: 1, prompt_id: 30, seed: 13905, prompt_text: "A fox" },
+            { q: 2, prompt_id: 31, seed: 13905, prompt_text: "A fox" },
+            { q: 3, prompt_id: 32, seed: 13905, prompt_text: "A fox" },
+            { q: 4, prompt_id: 60, seed: 18958, prompt_text: "A mug" },
+            { q: 5, prompt_id: 37, seed: 22436, prompt_text: "A hamburger" },
+            { q: 6, prompt_id: 79, seed: 11533, prompt_text: "A robot" },
+            { q: 7, prompt_id: 51, seed: 7044, prompt_text: "A lego castle" },
+            { q: 8, prompt_id: 100, seed: 14206, prompt_text: "A toy car" },
+            { q: 9, prompt_id: 16, seed: 14867, prompt_text: "A cat" },
+            { q: 10, prompt_id: 65, seed: 22680, prompt_text: "A panda" },
+        ];
+
+        const ALL_METHODS = ['SIC3D', 'SIC3D_trellis', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
+
+        let studyData = { questions: [], results: {} };
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateStudyData() {
+            studyData.questions = QUESTION_DATA.map((q, idx) => {
+                const shuffled = shuffle([...ALL_METHODS]);
+                return {
+                    questionNum: q.q,
+                    prompt_id: q.prompt_id,
+                    seed: q.seed,
+                    prompt_text: q.prompt_text,
+                    method1: shuffled[0],
+                    method2: shuffled[1],
+                    views: FIXED_VIEWS
+                };
+            });
+        }
+
+        function createQuestionPages() {
+            const container = document.getElementById('questionPages');
+
+            studyData.questions.forEach((q, idx) => {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.id = `questionPage${idx}`;
+
+                let methodAViewsHTML = '';
+                q.views.forEach(view => {
+                    methodAViewsHTML += `<img src="images/q${q.questionNum}/${q.method1}_${q.prompt_id}_${q.seed}_rgb_${view}.png" alt="View ${view}">`;
+                });
+
+                let methodBViewsHTML = '';
+                q.views.forEach(view => {
+                    methodBViewsHTML += `<img src="images/q${q.questionNum}/${q.method2}_${q.prompt_id}_${q.seed}_rgb_${view}.png" alt="View ${view}">`;
+                });
+
+                const styleImgPath = `images/q${q.questionNum}/${q.method1}_${q.prompt_id}_${q.seed}_style.png`;
+
+                page.innerHTML = `
+                    <div class="question">
+                        <div class="question-header">
+                            <span class="question-number">Question ${idx + 1} of ${NUM_QUESTIONS}</span>
+                            <span class="progress">${idx + 1} / ${NUM_QUESTIONS}</span>
+                        </div>
+                        <div class="prompt">${q.prompt_text}</div>
+                        <div class="style-reference"><p>Style Reference</p><img src="${styleImgPath}" alt="Style"></div>
+                        <div class="image-section">
+                            <div class="image-group">
+                                <div class="method-label"><span class="method-label-left">Method A</span></div>
+                                <div class="views-grid">${methodAViewsHTML}</div>
+                            </div>
+                            <div class="image-group">
+                                <div class="method-label"><span class="method-label-right">Method B</span></div>
+                                <div class="views-grid">${methodBViewsHTML}</div>
+                            </div>
+                        </div>
+                        <table class="criteria-table">
+                            <thead>
+                                <tr>
+                                    <th>Criterion</th>
+                                    <th>Left is better</th>
+                                    <th>Right is better</th>
+                                    <th>Cannot decide</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><div class="criteria-name">1. Text prompt and Model Alignment</div><div class="criteria-desc">How well model corresponds to text</div></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c1" value="left"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c1" value="right"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c1" value="cannot" checked></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="criteria-name">2. 3D Plausibility</div><div class="criteria-desc">Natural, solid, no abnormalities</div></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c2" value="left"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c2" value="right"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c2" value="cannot" checked></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="criteria-name">3. Geometry-Texture Alignment</div><div class="criteria-desc">Texture adheres to geometry</div></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c3" value="left"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c3" value="right"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c3" value="cannot" checked></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="criteria-name">4. Low-Level Texture Details</div><div class="criteria-desc">Fine details, not blurry</div></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c4" value="left"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c4" value="right"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c4" value="cannot" checked></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="criteria-name">5. Low-Level Geometry Details</div><div class="criteria-desc">Accurate shape, no noise</div></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c5" value="left"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c5" value="right"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c5" value="cannot" checked></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="criteria-name">6. Overall Quality</div><div class="criteria-desc">Considering all aspects, which one is better overall</div></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c6" value="left"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c6" value="right"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c6" value="cannot" checked></td>
+                                </tr>
+                                <tr>
+                                    <td><div class="criteria-name">7. Style Alignment</div><div class="criteria-desc">Similar to style reference (color palette, tones)</div></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c7" value="left"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c7" value="right"></td>
+                                    <td style="text-align:center"><input type="radio" name="q${idx}_c7" value="cannot" checked></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="nav-buttons">
+                            ${idx > 0 ? `<button class="btn btn-secondary" onclick="showPage(${idx})">Previous</button>` : '<div></div>'}
+                            ${idx < NUM_QUESTIONS - 1 ? `<button class="btn" onclick="saveAndNext(${idx})">Next</button>` : `<button class="btn" onclick="finishStudy(${idx})">Submit</button>`}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(page);
+            });
+        }
+
+        function showPage(pageNum) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`questionPage${pageNum}`).classList.add('active');
+        }
+
+        function saveAndNext(currentPage) {
+            saveAnswers(currentPage);
+            showPage(currentPage + 1);
+        }
+
+        function saveAnswers(questionIdx) {
+            for (let c = 1; c <= 7; c++) {
+                const radios = document.getElementsByName(`q${questionIdx}_c${c}`);
+                let value = 'cannot';
+                for (const radio of radios) {
+                    if (radio.checked) { value = radio.value; break; }
+                }
+                studyData.results[`q${questionIdx + 1}_c${c}`] = value;
+            }
+        }
+
+        function finishStudy(lastPageIdx) {
+            saveAnswers(lastPageIdx);
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('finalPage').classList.add('active');
+        }
+
+        function startStudy() {
+            generateStudyData();
+            createQuestionPages();
+            showPage(0);
+        }
+
+        function downloadResults() {
+            let output = "User Study Results\n==================\n\n";
+            studyData.questions.forEach((q, idx) => {
+                output += `Q${idx + 1}: ${q.prompt_text} (prompt_id=${q.prompt_id}, seed=${q.seed})\n`;
+                output += `  Method A: ${q.method1}, Method B: ${q.method2}\n`;
+                for (let c = 1; c <= 7; c++) {
+                    output += `  Criterion ${c}: ${studyData.results[`q${idx + 1}_c${c}`] || 'cannot'}\n`;
+                }
+            });
+            const blob = new Blob([output], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'user_study_results.txt';
+            a.click();
+        }
+    </script>
+</body>
+</html>
