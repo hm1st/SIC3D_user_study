@@ -800,8 +800,8 @@
             <h2>Output Format</h2>
             <p>For each of the criteria, you need to make a decision using these three options:</p>
             <ul>
-                <li><strong>Left is better</strong> - Left (object 1) is better</li>
-                <li><strong>Right is better</strong> - Right (object 2) is better</li>
+                <li><strong>Method A is better</strong> - SIC3D is better</li>
+                <li><strong>Method B is better</strong> - stylised_prompt is better</li>
                 <li><strong>Cannot decide</strong> - Both are equal</li>
             </ul>
             <p style="margin-top: 10px; color: red;"><strong>IMPORTANT: PLEASE USE "Cannot decide" SPARSELY.</strong></p>
@@ -894,8 +894,8 @@
                             <div class="wireframe-question-content">
                                 <div class="wireframe-q-title">Criterion 1: Text prompt and Model Alignment</div>
                                 <div class="wireframe-options">
-                                    <span class="option">[ ] Left is better</span>
-                                    <span class="option">[ ] Right is better</span>
+                                    <span class="option">[ ] Method A is better</span>
+                                    <span class="option">[ ] Method B is better</span>
                                     <span class="option">[ ] Cannot decide</span>
                                 </div>
                             </div>
@@ -1133,11 +1133,11 @@
                                 <div class="criteria-options">
                                     <label class="radio-option">
                                         <input type="radio" name="q${idx}_c${crit.id}" value="left" onchange="markCriteriaAnswered(${idx}, ${critIdx})">
-                                        <span class="option-label left">Left is better</span>
+                                        <span class="option-label left">Method A is better</span>
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="q${idx}_c${crit.id}" value="right" onchange="markCriteriaAnswered(${idx}, ${critIdx})">
-                                        <span class="option-label right">Right is better</span>
+                                        <span class="option-label right">Method B is better</span>
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="q${idx}_c${crit.id}" value="cannot" checked onchange="markCriteriaAnswered(${idx}, ${critIdx})">
