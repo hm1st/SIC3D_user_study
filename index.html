@@ -1090,8 +1090,12 @@
         </div>
     </div>
 
+    <script src="samples/questions.js"></script>
     <script>
-        const NUM_QUESTIONS = 10;
+        // Question definitions live in questions.js (window.QUESTION_DATA).
+        // Edit that file to modify the questionnaire — do not redefine here.
+        const QUESTION_DATA = window.QUESTION_DATA;
+        const NUM_QUESTIONS = QUESTION_DATA.length;
         const FIXED_VIEWS = [0, 30, 60, 90];
 
         // Keyboard shortcuts: 1=Left, 2=Right, 3=Cannot, Space=Next
@@ -1137,19 +1141,6 @@
             }
         });
 
-        const QUESTION_DATA = [
-            { q: 1, prompt_id: 30, seed: 13905, prompt_text: "A fox" },
-            { q: 2, prompt_id: 31, seed: 13905, prompt_text: "A fox" },
-            { q: 3, prompt_id: 32, seed: 13905, prompt_text: "A fox" },
-            { q: 4, prompt_id: 60, seed: 18958, prompt_text: "A mug" },
-            { q: 5, prompt_id: 37, seed: 22436, prompt_text: "A hamburger" },
-            { q: 6, prompt_id: 79, seed: 11533, prompt_text: "A robot" },
-            { q: 7, prompt_id: 51, seed: 7044, prompt_text: "A lego castle" },
-            { q: 8, prompt_id: 100, seed: 14206, prompt_text: "A toy car" },
-            { q: 9, prompt_id: 16, seed: 14867, prompt_text: "A cat" },
-            { q: 10, prompt_id: 65, seed: 22680, prompt_text: "A panda" },
-        ];
-
         const ALL_METHODS = ['SIC3D', 'SIC3D_trellis', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
 
         let studyData = { questions: [], results: {} };
@@ -1163,18 +1154,21 @@
         }
 
         function generateStudyData() {
-            studyData.questions = QUESTION_DATA.map((q, idx) => {
+            studyData.questions = QUESTION_DATA.map((q) => {
                 const shuffled = shuffle([...ALL_METHODS]);
                 return {
                     questionNum: q.q,
                     prompt_id: q.prompt_id,
                     seed: q.seed,
-                    prompt_text: q.prompt_text,
+                    prompt: q.prompt,
+                    style: q.style,
                     method1: shuffled[0],
                     method2: shuffled[1],
                     views: FIXED_VIEWS
                 };
             });
+            // Randomize question order per session
+            shuffle(studyData.questions);
         }
 
         const CRITERIA_INFO = [
@@ -1198,15 +1192,15 @@
 
                 let methodAViewsHTML = '';
                 q.views.forEach(view => {
-                    methodAViewsHTML += `<img src="images/q${q.questionNum}/${q.method1}_${q.prompt_id}_${q.seed}_rgb_${view}.png" alt="View ${view}">`;
+                    methodAViewsHTML += `<img src="samples/s${q.questionNum}/${q.method1}/rgb_${view}.png" alt="View ${view}">`;
                 });
 
                 let methodBViewsHTML = '';
                 q.views.forEach(view => {
-                    methodBViewsHTML += `<img src="images/q${q.questionNum}/${q.method2}_${q.prompt_id}_${q.seed}_rgb_${view}.png" alt="View ${view}">`;
+                    methodBViewsHTML += `<img src="samples/s${q.questionNum}/${q.method2}/rgb_${view}.png" alt="View ${view}">`;
                 });
 
-                const styleImgPath = `images/q${q.questionNum}/${q.method1}_${q.prompt_id}_${q.seed}_style.png`;
+                const styleImgPath = `samples/s${q.questionNum}/${q.method1}/style.png`;
 
                 // 创建 Criteria Tab 导航
                 let criteriaTabsNav = '<div class="criteria-tabs-nav">';
@@ -1284,7 +1278,7 @@
 
                         <div class="question-content">
                             <div class="left-column">
-                                <div class="prompt">${q.prompt_text}</div>
+                                <div class="prompt">${q.prompt}</div>
                                 <div class="style-reference">
                                     <p>Style Reference</p>
                                     <img src="${styleImgPath}" alt="Style">
@@ -1421,8 +1415,12 @@
             const jsonData = {
                 timestamp: timestamp,
                 results: studyData.questions.map((q, idx) => ({
-                    sample: idx + 1,
-                    prompt: q.prompt_text,
+                    presentationOrder: idx + 1,
+                    questionId: q.questionNum,
+                    prompt: q.prompt,
+                    style: q.style,
+                    promptId: q.prompt_id,
+                    seed: q.seed,
                     methodA: q.method1,
                     methodB: q.method2,
                     criteria: {

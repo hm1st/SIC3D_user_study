@@ -25,28 +25,28 @@ xdg-open index.html
 
 1. User opens `index.html` in a browser
 2. Reads evaluation criteria (7 dimensions)
-3. Compares 4-view renderings of Method A vs Method B for 10 questions
-4. Answers each question by selecting: "Left is better" / "Right is better" / "Cannot decide"
-5. Downloads results as `user_study_results.txt`
+3. Compares 4-view renderings of Method A vs Method B for 20 questions (order randomized per session)
+4. Answers each criterion by selecting: "Method A is better" / "Method B is better" / "Cannot decide"
+5. Submits — results upload to Firestore (`study_results` collection in project `sic3d-user-study`)
 
 ## Code Architecture
 
-- **Single file**: All logic (HTML, CSS, JavaScript) is in `index.html`
-- **Data structure**: Questions defined in `QUESTION_DATA` array (line ~1029)
+- **Two files**: page logic in `index.html`, per-question config in `questions.js`
+- **Data structure**: `window.QUESTION_DATA` array in `questions.js` is the source of truth. `index.html` reads it via `<script src="questions.js">` and derives `NUM_QUESTIONS = QUESTION_DATA.length`. Do not redefine `QUESTION_DATA` in `index.html`. Adding/removing questions only requires editing `questions.js` (and copying the matching image files).
 - **Methods**: 6 methods available - `SIC3D`, `SIC3D_trellis`, `g-style`, `sgsst`, `styleGS`, `style_prompt`
-- **Images**: Stored in `images/q{1-10}/` folders, named `{method}_{prompt_id}_{seed}_rgb_{view}.png`
+- **Images**: Stored in `images/q{1..20}/{method}/` folders, named `{prompt_id}_{seed}_rgb_{view}.png`
 - **Views**: Fixed at 4 angles [0, 30, 60, 90] degrees
-- **Results**: Downloaded as plain text file
+- **Results**: Submitted to Firestore via `saveToFirestoreData()`. Each result entry has `presentationOrder`, `questionId`, `prompt`, `promptId`, `seed`, `methodA`, `methodB`, plus 7 criteria.
 
 ## Key JavaScript Functions
 
 | Function | Purpose |
 |----------|---------|
-| `generateStudyData()` | Shuffles method assignments for each question |
-| `createQuestionPages()` | Dynamically builds the 10 question pages |
+| `generateStudyData()` | Per-question: pick 2 random methods. Then shuffle the 20 questions for this session. |
+| `createQuestionPages()` | Dynamically builds the question pages from `studyData.questions` |
 | `showCriteriaTab()` | Switches between 7 criteria tabs |
 | `goToNext()` | Navigates to next question/criteria |
-| `downloadResults()` | Exports answers to text file |
+| `saveToFirestoreData()` | Uploads the JSON result document to Firestore |
 
 ## Evaluation Criteria (7 Total)
 
@@ -61,8 +61,8 @@ xdg-open index.html
 ## Image Naming Convention
 
 ```
-images/q{question_num}/{method}_{prompt_id}_{seed_rgb_{view}.png
-images/q{question_num}/{method}_{prompt_id}_{seed}_style.png
+images/q{question_num}/{method}/{prompt_id}_{seed}_rgb_{view}.png
+images/q{question_num}/{method}/{prompt_id}_{seed}_style.png
 ```
 
 - `method`: One of 6 methods
