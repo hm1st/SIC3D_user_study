@@ -20,7 +20,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 保存到 Firestore
+        // Save the results to Firestore
         async function saveToFirestore(jsonData) {
             try {
                 await addDoc(collection(db, "study_results"), {
@@ -298,7 +298,7 @@
         .criteria-section h4 { color: #333; margin-bottom: 8px; }
         .criteria-section p { font-size: 0.95em; }
 
-        .question { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        /* .question { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
 
         .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
         .question-number {
@@ -310,7 +310,24 @@
             font-size: 0.9em;
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
-        .progress { color: #666; font-size: 0.85em; font-weight: 500; }
+        .progress { color: #666; font-size: 0.85em; font-weight: 500; } */
+
+        .question { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px
+        rgba(0,0,0,0.08); position: relative; }
+
+        .question-number {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8em;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            pointer-events: none;
+        }
 
         /* ===== 横向布局样式 ===== */
         .question-content {
@@ -905,11 +922,11 @@
         </div>
 
         <div class="instructions">
-            <h2>Output Format</h2>
+            <h2>Make a Decision</h2>
             <p>For each of the criteria, you need to make a decision using these three options:</p>
             <ul>
-                <li><strong>Method A is better</strong> - SIC3D is better</li>
-                <li><strong>Method B is better</strong> - stylised_prompt is better</li>
+                <li><strong>Method A is better</strong> - The result for Method A is better</li>
+                <li><strong>Method B is better</strong> - The result for Method B is better</li>
                 <li><strong>Cannot decide</strong> - Both are equal</li>
             </ul>
             <p style="margin-top: 10px; color: red;"><strong>IMPORTANT: PLEASE USE "Cannot decide" SPARSELY.</strong></p>
@@ -1302,18 +1319,20 @@
                 page.innerHTML = `
                     <div class="page-header">
                         <h1>SIC3D: Style Image Conditioned Text-to-3D Gaussian Splatting Generation User Study</h1>
-                        <div class="keyboard-hint">
+                        <!-- <div class="keyboard-hint">
                             <span class="key">1</span> Method A
                             <span class="key">2</span> Method B
                             <span class="key">3</span> Cannot decide
                             <span class="key">Space</span> Next
-                        </div>
+                        </div> -->
                     </div>
                     <div class="question">
-                        <div class="question-header">
+                        <!-- <div class="question-header">
                             <span class="question-number">Sample ${idx + 1} of ${NUM_QUESTIONS}</span>
                             <span class="progress">${idx + 1} / ${NUM_QUESTIONS}</span>
-                        </div>
+                        </div> -->
+
+                        <span class="question-number">Sample ${idx + 1} of ${NUM_QUESTIONS}</span>
 
                         <div class="question-content">
                             <div class="left-column">
