@@ -245,6 +245,45 @@
             opacity: 0.8;
         }
 
+        /* ── Fixed keyboard-shortcut legend ── */
+        #kbd-legend {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(15, 12, 41, 0.88);
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.82em;
+            line-height: 1.9;
+            z-index: 9999;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+            display: none;          /* shown only on question pages */
+            pointer-events: none;   /* never blocks clicks */
+        }
+        #kbd-legend .legend-title {
+            font-size: 0.78em;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.65;
+            margin-bottom: 4px;
+        }
+        #kbd-legend kbd {
+            display: inline-block;
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            padding: 1px 7px;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: 700;
+            min-width: 22px;
+            text-align: center;
+        }
+        #kbd-legend .legend-row { display: flex; align-items: center; gap: 8px; }
+
         .page { display: none; }
         .page.active { display: block; }
 
@@ -1338,6 +1377,7 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(`questionPage${pageNum}`).classList.add('active');
             showCriteriaTab(pageNum, 0);
+            document.getElementById('kbd-legend').style.display = 'block';
         }
 
         function goToNext(questionIdx, criteriaIdx) {
@@ -1395,6 +1435,7 @@
             saveAnswers(lastPageIdx);
             document.getElementById('questionPages').style.display = 'none';
             document.getElementById('finalPage').classList.add('active');
+            document.getElementById('kbd-legend').style.display = 'none';
 
             // 自动保存到 Firestore
             saveToFirestoreData();
@@ -1459,5 +1500,13 @@
             showPage(0);
         }
     </script>
+    <!-- Fixed keyboard shortcut legend (visible only on question pages) -->
+    <div id="kbd-legend">
+        <div class="legend-title">Keyboard shortcuts</div>
+        <div class="legend-row"><kbd>1</kbd> Method A is better</div>
+        <div class="legend-row"><kbd>2</kbd> Method B is better</div>
+        <div class="legend-row"><kbd>3</kbd> Cannot decide</div>
+        <div class="legend-row"><kbd>Space</kbd> Next</div>
+    </div>
 </body>
 </html>

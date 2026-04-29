@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m json.tool)",
+      "Bash(grep -v \"^\\\\s*//\")",
+      "Bash(python compute_scores.py --help)",
+      "Bash(conda activate *)",
+      "Bash(python -c \"import tqdm, torch, numpy\")",
+      "Read(//c/Users/MingHe/miniconda3/**)",
+      "Read(//c/ProgramData/miniconda3/**)",
+      "Bash(conda env *)",
+      "Bash(conda run *)",
+      "Read(//mnt/parscratch/users/acr22mh/miniconda3/**)",
+      "Read(//c/Users/Ming He/miniconda3/**)",
+      "Bash(\"F:/Anaconda/python.exe\" compute_scores.py --input test_input.json --output test_scores.json --niters 300)",
+      "Bash(\"F:/Anaconda/python.exe\" -c \"import json; d=json.load\\(open\\('test_scores.json'\\)\\); [print\\(f'Criterion {k}: {d[k][\\\\\"criterion\\\\\"]}'\\); [print\\(f'  {m}: {e:.1f}'\\) for m,e in d[k]['ranking']] for k in sorted\\(d\\)]\")",
+      "Bash(F:/Anaconda/python.exe -c ' *)"
+    ]
+  }
+}
