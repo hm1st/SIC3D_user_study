@@ -1,15 +1,15 @@
 # User Study HTML Questionnaire
 
-A self-contained browser questionnaire for pairwise comparison of 6 stylised text-to-3D methods.
+A self-contained browser questionnaire for pairwise comparison of stylised text-to-3D methods.
 
 ## How to Use
 
 1. Open `index.html` in any modern browser — no server needed.
 2. For each of the 20 questions, examine the 4-view renderings of Method A vs Method B and the style reference.
-3. For each of the 7 criteria, select **Method A is better / Method B is better / Cannot decide**.
+3. Answer the 2 questions shown side by side — **Overall Object Quality** and **Style Alignment** — each by selecting **Method A is better / Method B is better / Cannot decide**.
 4. Click Submit. Results upload to Firestore.
 
-The question order is randomized on every session, and Method A / Method B are randomly drawn from the 6 methods per question. Results are tagged with `prompt`, `promptId`, `seed`, `methodA`, `methodB`, and `presentationOrder` so the actual prompt–style pair (not the sequential slot) is what's recorded.
+The question order is randomized on every session, and Method A / Method B are randomly drawn from the 5 methods per question. Results are tagged with `prompt`, `promptId`, `seed`, `methodA`, `methodB`, and `presentationOrder` so the actual prompt–style pair (not the sequential slot) is what's recorded.
 
 ## Folder Structure
 
@@ -64,18 +64,18 @@ The `q` field below is the canonical question ID stored in Firestore as `questio
 
 Style coverage: fire ×7, flower ×4, mosaic ×3, van gogh ×2, wave ×1, starry night ×2, northern light ×1.
 
-## Evaluation Criteria (7)
+## Evaluation Criteria (2 questions)
 
-Sourced from `../../tournament_v2/gpt_prompts/`:
+The participant answers 2 questions per sample (shown side by side):
 
-`n4_full.txt` — criteria 1–6, no style reference:
-1. **Text-Asset Alignment** — does the model match the text prompt?
-2. **3D Plausibility** — natural, solid, no abnormalities
-3. **Geometry-Texture Alignment** — texture adheres to geometry
-4. **Low-Level Texture Details** — fine details, not blurry
-5. **Low-Level Geometry Details** — accurate shape, no noise
-6. **Overall Quality** — better overall
+1. **Overall Object Quality** — which object is better overall. Judged by weighing 5 underlying aspects (explained on the intro page, not asked separately):
+   - Text-Asset Alignment — does the model match the text prompt?
+   - 3D Plausibility — natural, solid, no abnormalities
+   - Geometry-Texture Alignment — texture adheres to geometry
+   - Low-Level Texture Details — fine details, not blurry
+   - Low-Level Geometry Details — accurate shape, no noise
+2. **Style Alignment** — similar palette / tone to the style reference
 
-`n4_style.txt` — criterion 7, with style reference:
+Criteria wording is sourced from `../../tournament_v2/gpt_prompts/` (`n4_full.txt`, `n4_style.txt`).
 
-7. **Style Alignment** — similar palette / tone to the style reference
+Stored in Firestore as `criteria.overallQuality` (c1) and `criteria.styleAlignment` (c2).

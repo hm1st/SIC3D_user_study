@@ -6,7 +6,7 @@
     <title>SIC3D User Study</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAusmYu4nylqSjuaTceN8bbPKP_wGzXurQ",
@@ -34,6 +34,25 @@
         }
 
         window.saveToFirestore = saveToFirestore;
+
+        // Email key: replace @ and . so it's a valid Firestore doc ID
+        function emailToKey(email) {
+            return email.replace(/\./g, '_').replace(/@/g, '__at__');
+        }
+
+        async function checkEmailExists(email) {
+            const snap = await getDoc(doc(db, "participants", emailToKey(email)));
+            return snap.exists();
+        }
+        window.checkEmailExists = checkEmailExists;
+
+        async function registerParticipant(email) {
+            await setDoc(doc(db, "participants", emailToKey(email)), {
+                email: email,
+                startedAt: new Date().toISOString()
+            });
+        }
+        window.registerParticipant = registerParticipant;
     </script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -87,68 +106,26 @@
         }
 
         /* ===== Criteria Tab 样式 ===== */
-        .criteria-tabs-container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            overflow: hidden;
+        .criteria-blocks {
+            display: flex;
+            gap: 15px;
             margin-bottom: 15px;
         }
 
-        .criteria-tabs-nav {
+        .criteria-block {
+            flex: 1;
+            min-width: 0;
             display: flex;
-            background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
-            padding: 6px 6px 0 6px;
-            gap: 3px;
-            overflow-x: auto;
         }
 
-        .criteria-tab-btn {
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: rgba(255,255,255,0.8);
-            padding: 8px 12px;
-            font-size: 0.8em;
-            font-weight: 500;
-            cursor: pointer;
-            border-radius: 6px 6px 0 0;
-            transition: all 0.3s ease;
-            white-space: nowrap;
+        .page-next {
             display: flex;
-            align-items: center;
-            gap: 4px;
+            justify-content: flex-end;
+            margin-bottom: 15px;
         }
 
-        .criteria-tab-btn:hover {
-            background: rgba(255,255,255,0.25);
-            color: white;
-        }
-
-        .criteria-tab-btn.active {
-            background: white;
-            color: #333;
-            box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
-        }
-
-        .criteria-tab-btn .status-icon {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #ccc;
-            flex-shrink: 0;
-        }
-
-        .criteria-tab-btn .status-icon.answered {
-            background: #4CAF50;
-        }
-
-        .criteria-tab-content {
-            display: none;
-            padding: 15px;
-        }
-
-        .criteria-tab-content.active {
-            display: block;
+        @media (max-width: 768px) {
+            .criteria-blocks { flex-direction: column; }
         }
 
         .criteria-question {
@@ -156,6 +133,9 @@
             background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
             border-radius: 8px;
             border: 1px solid #e9ecef;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .criteria-question h3 {
@@ -173,9 +153,17 @@
 
         .criteria-options {
             display: flex;
-            gap: 15px;
-            align-items: center;
+            flex-direction: row;
             flex-wrap: wrap;
+            gap: 10px;
+            align-items: stretch;
+            margin-top: auto;
+        }
+
+        .criteria-options .radio-option {
+            flex: 1;
+            min-width: 0;
+            justify-content: center;
         }
 
         .radio-option {
@@ -207,17 +195,6 @@
             font-size: 1em;
         }
 
-        .radio-option .option-label .shortcut {
-            display: inline-block;
-            background: #e9ecef;
-            color: #495057;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: 700;
-            margin-left: 8px;
-        }
-
         .radio-option .option-label.left {
             color: #0072ff;
         }
@@ -231,58 +208,9 @@
         }
 
         .next-btn {
-            margin-left: auto;
-            padding: 8px 20px;
-            font-size: 0.9em;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
+            padding: 10px 30px;
+            font-size: 0.95em;
         }
-        .next-btn .btn-shortcut {
-            font-size: 0.75em;
-            font-weight: 400;
-            opacity: 0.8;
-        }
-
-        /* ── Fixed keyboard-shortcut legend ── */
-        #kbd-legend {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(15, 12, 41, 0.88);
-            color: #fff;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 0.82em;
-            line-height: 1.9;
-            z-index: 9999;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-            display: none;          /* shown only on question pages */
-            pointer-events: none;   /* never blocks clicks */
-        }
-        #kbd-legend .legend-title {
-            font-size: 0.78em;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            opacity: 0.65;
-            margin-bottom: 4px;
-        }
-        #kbd-legend kbd {
-            display: inline-block;
-            background: rgba(255,255,255,0.18);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 4px;
-            padding: 1px 7px;
-            font-family: inherit;
-            font-size: 1em;
-            font-weight: 700;
-            min-width: 22px;
-            text-align: center;
-        }
-        #kbd-legend .legend-row { display: flex; align-items: center; gap: 8px; }
 
         .page { display: none; }
         .page.active { display: block; }
@@ -637,29 +565,6 @@
             border: 1px solid #ccc;
         }
 
-        /* Tabs */
-        .wireframe-tabs {
-            display: flex;
-            gap: 4px;
-            padding: 8px 12px;
-            background: #2d3436;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .wireframe-tabs .tab {
-            padding: 4px 8px;
-            background: rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.7);
-            border-radius: 4px 4px 0 0;
-            font-size: 0.65em;
-        }
-
-        .wireframe-tabs .tab.active {
-            background: white;
-            color: #333;
-        }
-
         /* 问题区域 */
         .wireframe-question {
             padding: 12px;
@@ -672,6 +577,26 @@
 
         .wireframe-question-content {
             flex: 1;
+        }
+
+        .wireframe-q-blocks {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+
+        .wireframe-q-block {
+            flex: 1;
+            min-width: 0;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .wireframe-q-block .wireframe-options {
+            flex-direction: column;
+            align-items: stretch;
         }
 
         .wireframe-q-title {
@@ -883,41 +808,24 @@
 
         <div class="instructions">
             <h2>Evaluation Criteria</h2>
+            <p>For each sample you will answer <strong>two questions</strong>.</p>
 
             <div class="criteria-section">
-                <h4>1. Text prompt and Model Alignment</h4>
-                <p>Focus on how well the two 3D models correspond to the given text input. An ideal model should accurately reflect what is mentioned in the text prompt, capturing the corresponding attributes as described. Please first describe each of the two models, and then evaluate how well it covers all the attributes in the original text prompt.</p>
+                <h4>1. Overall Object Quality</h4>
+                <p>Decide which of the two 3D objects is better <strong>overall</strong>. Do not rely on a single property — form your judgement by considering all of the following aspects together:</p>
+                <ul>
+                    <li><strong>Text–Asset Alignment</strong> — how well the object matches the text prompt and captures the attributes it describes.</li>
+                    <li><strong>3D Plausibility</strong> — natural, solid and plausible, with accurate proportions and no abnormalities (duplicated parts, noisy or meaningless structures).</li>
+                    <li><strong>Geometry–Texture Alignment</strong> — the texture adheres to the geometry and the two align with each other locally.</li>
+                    <li><strong>Low-Level Texture Details</strong> — fine texture details that are sharp rather than blurry.</li>
+                    <li><strong>Low-Level Geometry Details</strong> — an accurate, well-organised shape with intricate detail and no meaningless noise.</li>
+                </ul>
+                <p>Weigh these aspects together and choose the object that is better overall.</p>
             </div>
 
             <div class="criteria-section">
-                <h4>2. 3D Plausibility</h4>
-                <p>Determine which of the two 3D models appears more natural, solid, and plausible. Pay attention to any irregularities, such as abnormal body proportions, duplicated parts, or the presence of noisy or meaningless 3D structures. An ideal model should possess accurate proportions, shapes, and structures that closely resemble the real-world object.</p>
-            </div>
-
-            <div class="criteria-section">
-                <h4>3. Geometry-Texture Alignment</h4>
-                <p>This examines how well the texture adheres to the geometry. The texture and shape should align with each other locally.</p>
-            </div>
-
-            <div class="criteria-section">
-                <h4>4. Low-Level Texture Details</h4>
-                <p>Focus on local parts of the renderings. RGB images. Assess which 3D model effectively captures fine details without appearing blurry and which one aligns with the desired aesthetic of the 3D model.</p>
-            </div>
-
-            <div class="criteria-section">
-                <h4>5. Low-Level Geometry Details</h4>
-                <p>The geometry of the 3D models should accurately represent the intended shape. Note that meaningless noise is not considered as high-frequency details. Determine which one has a more well-organized and efficient structure, which one exhibits intricate details, and which one is more visually pleasing and smooth.</p>
-            </div>
-
-            <div class="criteria-section">
-                <h4>6. Overall Object Quality</h4>
-                <p>Considering all the degrees above, which one is better overall?</p>
-            </div>
-
-            <div class="criteria-section">
-                <h4>7. Style Alignment (for stylized generation)</h4>
-                <p>Our task is to compare two 3D models to see if they match the style of a reference image. Both the 3D models are generated from the same base text description and influenced by the style feature of the reference image.</p>
-                <p>For each 3D model, determine which one has a similar style to the reference image. An ideal model's rendering should have strong commonality with reference image, especially in the colour palette and continuity of tones. For example, the reference image contains fire with intense orange-red tones. Desired object's rendering should also have a similar color and tone as if it's also under fire. While there are subtle differences in flame shape and detailed textures, the overall visual effect is very consistent.</p>
+                <h4>2. Style Alignment</h4>
+                <p>Both objects are generated from the same base text description and influenced by the style feature of the reference image. Decide which object has a style more similar to the reference image — an ideal rendering should have strong commonality with the reference, especially in the colour palette and continuity of tones. For example, if the reference contains fire with intense orange-red tones, the desired object should share a similar colour and tone, as if it were also under fire. Subtle differences in shape and detailed textures are acceptable as long as the overall visual effect is consistent.</p>
             </div>
         </div>
 
@@ -933,6 +841,16 @@
         </div>
 
         <div class="start-section">
+            <div id="email-section" style="margin-bottom: 18px; text-align: center;">
+                <div>
+                    <label for="participant-email" style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 15px;">Your email address</label>
+                    <input type="email" id="participant-email" placeholder="example@email.com"
+                        style="padding: 10px 16px; font-size: 15px; border: 2px solid #ddd; border-radius: 8px; width: 320px; outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#4a90d9'" onblur="this.style.borderColor='#ddd'"
+                        onkeydown="if(event.key==='Enter') startStudy()">
+                </div>
+                <p id="email-error" style="color: #e53e3e; margin-top: 8px; font-size: 14px; display: none;"></p>
+            </div>
             <button class="btn" onclick="startStudy()">Start Study</button>
         </div>
     </div>
@@ -1001,34 +919,32 @@
                             </div>
                         </div>
 
-                        <!-- Criteria Tabs -->
-                        <div class="wireframe-tabs">
-                            <span class="wireframe-tag">⑥</span>
-                            <span class="tab active">Text-Align</span>
-                            <span class="tab">3D Plaus</span>
-                            <span class="tab">Geo-Tex</span>
-                            <span class="tab">Texture</span>
-                            <span class="tab">Geometry</span>
-                            <span class="tab">Overall</span>
-                            <span class="tab">Style</span>
-                        </div>
-
-                        <!-- 问题区域 - 分成两部分 -->
+                        <!-- 问题区域 - 左右两块 -->
                         <div class="wireframe-question">
-                            <span class="wireframe-tag">⑦</span>
-                            <div class="wireframe-question-content">
-                                <div class="wireframe-q-title">Criterion 1: Text prompt and Model Alignment</div>
-                                <div class="wireframe-options">
-                                    <span class="option">[ ] Method A is better</span>
-                                    <span class="option">[ ] Method B is better</span>
-                                    <span class="option">[ ] Cannot decide</span>
+                            <span class="wireframe-tag">⑥</span>
+                            <div class="wireframe-q-blocks">
+                                <div class="wireframe-q-block">
+                                    <div class="wireframe-q-title">Overall Object Quality</div>
+                                    <div class="wireframe-options">
+                                        <span class="option">[ ] Method A is better</span>
+                                        <span class="option">[ ] Method B is better</span>
+                                        <span class="option">[ ] Cannot decide</span>
+                                    </div>
+                                </div>
+                                <div class="wireframe-q-block">
+                                    <div class="wireframe-q-title">Style Alignment</div>
+                                    <div class="wireframe-options">
+                                        <span class="option">[ ] Method A is better</span>
+                                        <span class="option">[ ] Method B is better</span>
+                                        <span class="option">[ ] Cannot decide</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Next 按钮区域 -->
                         <div class="wireframe-next">
-                            <span class="wireframe-tag">⑧</span>
+                            <span class="wireframe-tag">⑦</span>
                             <button class="wireframe-btn">Next</button>
                         </div>
                     </div>
@@ -1053,15 +969,11 @@
                         </div>
                         <div class="legend-item">
                             <span class="legend-num">⑥</span>
-                            <span class="legend-label">Criteria Tabs</span>
+                            <span class="legend-label">Two Questions</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-num">⑦</span>
-                            <span class="legend-label">Question</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-num">⑧</span>
-                            <span class="legend-label">Next</span>
+                            <span class="legend-label">Next (enabled after both answered)</span>
                         </div>
                     </div>
                 </div>
@@ -1076,50 +988,15 @@
                 <div class="criteria-item">
                     <span class="criteria-num">1</span>
                     <div>
-                        <strong>Text-Align</strong>
-                        <p>How well the model corresponds to the text prompt</p>
+                        <strong>Overall Object Quality</strong>
+                        <p>Which object is better overall, weighing all of: text alignment, 3D plausibility, geometry–texture alignment, texture details, geometry details.</p>
                     </div>
                 </div>
                 <div class="criteria-item">
                     <span class="criteria-num">2</span>
                     <div>
-                        <strong>3D Plausibility</strong>
-                        <p>Natural, solid, no abnormalities</p>
-                    </div>
-                </div>
-                <div class="criteria-item">
-                    <span class="criteria-num">3</span>
-                    <div>
-                        <strong>Geo-Tex Align</strong>
-                        <p>Texture adheres to geometry properly</p>
-                    </div>
-                </div>
-                <div class="criteria-item">
-                    <span class="criteria-num">4</span>
-                    <div>
-                        <strong>Texture Details</strong>
-                        <p>Fine details, not blurry</p>
-                    </div>
-                </div>
-                <div class="criteria-item">
-                    <span class="criteria-num">5</span>
-                    <div>
-                        <strong>Geometry Details</strong>
-                        <p>Accurate shape, no noise</p>
-                    </div>
-                </div>
-                <div class="criteria-item">
-                    <span class="criteria-num">6</span>
-                    <div>
-                        <strong>Overall Object Quality</strong>
-                        <p>Considering all aspects</p>
-                    </div>
-                </div>
-                <div class="criteria-item">
-                    <span class="criteria-num">7</span>
-                    <div>
-                        <strong>Style Align</strong>
-                        <p>Similar to style reference (color, tones)</p>
+                        <strong>Style Alignment</strong>
+                        <p>Which object's style is closer to the style reference (colour palette and tones).</p>
                     </div>
                 </div>
             </div>
@@ -1155,51 +1032,14 @@
         const FIXED_VIEWS = [0, 30, 60, 90];
 
         // Keyboard shortcuts: 1=Left, 2=Right, 3=Cannot, Space=Next
-        document.addEventListener('keydown', function(e) {
-            // Get current active question page
-            const activePage = document.querySelector('.page.active');
-            if (!activePage || !activePage.id.startsWith('questionPage')) return;
+        const ALL_METHODS = ['SIC3D', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
 
-            const pageId = activePage.id;
-            const questionIdx = parseInt(pageId.replace('questionPage', ''));
+        // Test emails bypass the duplicate check (can re-take), are not registered,
+        // and their results are tagged isTest:true so analysis can exclude them.
+        const TEST_EMAILS = ['mhe27@sheffield.ac.uk'];
 
-            // Get active criteria tab within current page
-            const activeCriteriaTab = activePage.querySelector('.criteria-tab-btn.active');
-            if (!activeCriteriaTab) return;
-            const criteriaIdx = parseInt(activeCriteriaTab.dataset.criteria);
-
-            // Handle number keys 1, 2, 3
-            if (e.key === '1' || e.key === '2' || e.key === '3' ||
-                e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3' ||
-                e.code === 'Numpad1' || e.code === 'Numpad2' || e.code === 'Numpad3') {
-                e.preventDefault();
-                let value;
-                if (e.key === '1' || e.code === 'Digit1' || e.code === 'Numpad1') value = 'left';
-                else if (e.key === '2' || e.code === 'Digit2' || e.code === 'Numpad2') value = 'right';
-                else value = 'cannot';
-                const radios = document.getElementsByName(`q${questionIdx}_c${criteriaIdx + 1}`);
-                for (const radio of radios) {
-                    if (radio.value === value) {
-                        radio.checked = true;
-                        markCriteriaAnswered(questionIdx, criteriaIdx);
-                        break;
-                    }
-                }
-            }
-
-            // Handle Space for next
-            if (e.key === ' ' && !e.target.matches('input, textarea')) {
-                e.preventDefault();
-                const nextBtn = document.getElementById(`nextBtn${questionIdx}_${criteriaIdx}`);
-                if (nextBtn && !nextBtn.disabled) {
-                    nextBtn.click();
-                }
-            }
-        });
-
-        const ALL_METHODS = ['SIC3D', 'SIC3D_trellis', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
-
-        let studyData = { questions: [], results: {} };
+        let studyData = { questions: [], results: {}, email: '' };
+        let studyCompleted = false;
 
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -1228,13 +1068,16 @@
         }
 
         const CRITERIA_INFO = [
-            { id: 1, name: "Text-Align", desc: "Text prompt and Model Alignment" },
-            { id: 2, name: "3D Plausibility", desc: "Natural, solid, no abnormalities" },
-            { id: 3, name: "Geo-Tex Align", desc: "Geometry-Texture Alignment" },
-            { id: 4, name: "Texture Details", desc: "Low-Level Texture Details" },
-            { id: 5, name: "Geometry Details", desc: "Low-Level Geometry Details" },
-            { id: 6, name: "Overall Object Quality", desc: "Overall Object Quality" },
-            { id: 7, name: "Style Align", desc: "Style Alignment" }
+            {
+                id: 1,
+                desc: "Overall Object Quality",
+                help: "Decide which object is better overall, weighing all aspects together: how well it matches the text prompt, 3D plausibility (natural, solid, correct proportions), geometry–texture alignment, fine texture details (not blurry), and accurate geometry details (no noise)."
+            },
+            {
+                id: 2,
+                desc: "Style Alignment",
+                help: "Decide which object's style is closer to the style reference image, especially in colour palette and continuity of tones."
+            }
         ];
 
         function createQuestionPages() {
@@ -1258,63 +1101,40 @@
 
                 const styleImgPath = `samples/s${q.questionNum}/${q.method1}/style.png`;
 
-                // 创建 Criteria Tab 导航
-                let criteriaTabsNav = '<div class="criteria-tabs-nav">';
-                CRITERIA_INFO.forEach((crit, critIdx) => {
-                    criteriaTabsNav += `
-                        <button class="criteria-tab-btn ${critIdx === 0 ? 'active' : ''}"
-                                onclick="showCriteriaTab(${idx}, ${critIdx})"
-                                id="criteriaTabBtn${idx}_${critIdx}"
-                                data-criteria="${critIdx}">
-                            <span class="status-icon" id="criteriaStatusIcon${idx}_${critIdx}"></span>
-                            ${crit.name}
-                        </button>
-                    `;
-                });
-                criteriaTabsNav += '</div>';
-
-                // 创建 Criteria Tab 内容
-                let criteriaTabsContent = '<div class="criteria-tabs-content">';
-                CRITERIA_INFO.forEach((crit, critIdx) => {
-                    const criteriaDescriptions = [
-                        "Focus on how well the two 3D models correspond to the given text input. An ideal model should accurately reflect what is mentioned in the text prompt.",
-                        "Determine which of the two 3D models appears more natural, solid, and plausible. Pay attention to any irregularities.",
-                        "This examines how well the texture adheres to the geometry. The texture and shape should align with each other locally.",
-                        "Focus on local parts of the renderings. Assess which 3D model effectively captures fine details without appearing blurry.",
-                        "The geometry of the 3D models should accurately represent the intended shape. Note that meaningless noise is not considered as high-frequency details.",
-                        "Considering all the degrees above, which one is better overall?",
-                        "For each 3D model, determine which one has a similar style to the reference image."
-                    ];
-
-                    criteriaTabsContent += `
-                        <div class="criteria-tab-content ${critIdx === 0 ? 'active' : ''}"
-                             id="criteriaTabContent${idx}_${critIdx}">
+                // 创建两个并排的 criterion 块
+                let criteriaBlocks = '<div class="criteria-blocks">';
+                CRITERIA_INFO.forEach((crit) => {
+                    criteriaBlocks += `
+                        <div class="criteria-block">
                             <div class="criteria-question">
-                                <h3>Criterion ${crit.id}: ${crit.desc}</h3>
-                                <p class="criteria-help">${criteriaDescriptions[critIdx]}</p>
+                                <h3>Q${crit.id}: ${crit.desc}</h3>
+                                <p class="criteria-help">${crit.help}</p>
                                 <div class="criteria-options">
                                     <label class="radio-option">
-                                        <input type="radio" name="q${idx}_c${crit.id}" value="left" onchange="markCriteriaAnswered(${idx}, ${critIdx})">
-                                        <span class="option-label left">Method A is better<span class="shortcut">1</span></span>
+                                        <input type="radio" name="q${idx}_c${crit.id}" value="left" onchange="markCriteriaAnswered(${idx})">
+                                        <span class="option-label left">Method A is better</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="q${idx}_c${crit.id}" value="right" onchange="markCriteriaAnswered(${idx}, ${critIdx})">
-                                        <span class="option-label right">Method B is better<span class="shortcut">2</span></span>
+                                        <input type="radio" name="q${idx}_c${crit.id}" value="right" onchange="markCriteriaAnswered(${idx})">
+                                        <span class="option-label right">Method B is better</span>
                                     </label>
                                     <label class="radio-option">
-                                        <input type="radio" name="q${idx}_c${crit.id}" value="cannot" onchange="markCriteriaAnswered(${idx}, ${critIdx})">
-                                        <span class="option-label cannot">Cannot decide<span class="shortcut">3</span></span>
+                                        <input type="radio" name="q${idx}_c${crit.id}" value="cannot" onchange="markCriteriaAnswered(${idx})">
+                                        <span class="option-label cannot">Cannot decide</span>
                                     </label>
-                                    <button class="btn next-btn" onclick="goToNext(${idx}, ${critIdx})" id="nextBtn${idx}_${critIdx}" disabled>
-                                        ${critIdx === 6 ? (idx === NUM_QUESTIONS - 1 ? 'Submit' : 'Next Sample') : 'Next Question'}
-                                        <span class="btn-shortcut">Space</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     `;
                 });
-                criteriaTabsContent += '</div>';
+                criteriaBlocks += '</div>';
+
+                const nextLabel = (idx === NUM_QUESTIONS - 1) ? 'Submit' : 'Next Sample';
+                const nextArea = `
+                    <div class="page-next">
+                        <button class="btn next-btn" onclick="goToNext(${idx})" id="nextBtn${idx}" disabled>${nextLabel}</button>
+                    </div>
+                `;
 
                 page.innerHTML = `
                     <div class="page-header">
@@ -1356,112 +1176,82 @@
                             </div>
                         </div>
 
-                        <div class="criteria-tabs-container">
-                            ${criteriaTabsNav}
-                            ${criteriaTabsContent}
-                        </div>
+                        ${criteriaBlocks}
+                        ${nextArea}
                     </div>
                 `;
                 container.appendChild(page);
             });
         }
 
-        function showCriteriaTab(questionIdx, criteriaIdx) {
-            // 更新该问题的 Criteria Tab 按钮状态
-            const tabBtns = document.querySelectorAll(`#questionPage${questionIdx} .criteria-tab-btn`);
-            tabBtns.forEach((btn, idx) => {
-                btn.classList.toggle('active', idx === criteriaIdx);
-            });
-
-            // 更新该问题的 Criteria Tab 内容显示
-            const tabContents = document.querySelectorAll(`#questionPage${questionIdx} .criteria-tab-content`);
-            tabContents.forEach((content, idx) => {
-                content.classList.toggle('active', idx === criteriaIdx);
-            });
+        // 某个 criterion 是否已选
+        function isCriterionAnswered(questionIdx, critId) {
+            const radios = document.getElementsByName(`q${questionIdx}_c${critId}`);
+            for (const radio of radios) {
+                if (radio.checked) return true;
+            }
+            return false;
         }
 
-        function markCriteriaAnswered(questionIdx, criteriaIdx) {
-            const statusIcon = document.getElementById(`criteriaStatusIcon${questionIdx}_${criteriaIdx}`);
-            if (statusIcon) {
-                statusIcon.classList.add('answered');
-            }
-            // Enable the next button
-            const nextBtn = document.getElementById(`nextBtn${questionIdx}_${criteriaIdx}`);
+        function markCriteriaAnswered(questionIdx) {
+            // 两个问题都已选才启用整页 Next 按钮
+            const allAnswered = CRITERIA_INFO.every(crit => isCriterionAnswered(questionIdx, crit.id));
+            const nextBtn = document.getElementById(`nextBtn${questionIdx}`);
             if (nextBtn) {
-                nextBtn.disabled = false;
+                nextBtn.disabled = !allAnswered;
             }
         }
 
         function showPage(pageNum) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(`questionPage${pageNum}`).classList.add('active');
-            showCriteriaTab(pageNum, 0);
-            document.getElementById('kbd-legend').style.display = 'block';
+            window.scrollTo(0, 0);
         }
 
-        function goToNext(questionIdx, criteriaIdx) {
-            // 检查是否已选择答案
-            const radios = document.getElementsByName(`q${questionIdx}_c${criteriaIdx + 1}`);
-            let selected = false;
-            for (const radio of radios) {
-                if (radio.checked) { selected = true; break; }
-            }
-            if (!selected) {
-                alert('Please select an option before continuing.');
+        function goToNext(questionIdx) {
+            // 检查两个问题都已选择答案
+            const allAnswered = CRITERIA_INFO.every(crit => isCriterionAnswered(questionIdx, crit.id));
+            if (!allAnswered) {
+                alert('Please answer both questions before continuing.');
                 return;
             }
 
-            // 保存当前答案
-            saveAnswersForCriteria(questionIdx, criteriaIdx);
+            // 保存当前页答案
+            saveAnswers(questionIdx);
 
-            // 如果是最后一个 sample 的最后一个 criteria，提交
-            if (questionIdx === NUM_QUESTIONS - 1 && criteriaIdx === 6) {
+            // 最后一个 sample，提交
+            if (questionIdx === NUM_QUESTIONS - 1) {
                 finishStudy(questionIdx);
                 return;
             }
 
-            // 如果是当前 sample 的最后一个 criteria，跳转到下一个 sample 的第一个 criteria
-            if (criteriaIdx === 6) {
-                showPage(questionIdx + 1);
-                showCriteriaTab(questionIdx + 1, 0);
-            } else {
-                // 否则跳转到下一个 criteria tab
-                showCriteriaTab(questionIdx, criteriaIdx + 1);
-            }
-        }
-
-        function saveAnswersForCriteria(questionIdx, criteriaIdx) {
-            const radios = document.getElementsByName(`q${questionIdx}_c${criteriaIdx + 1}`);
-            let value = '';
-            for (const radio of radios) {
-                if (radio.checked) { value = radio.value; break; }
-            }
-            studyData.results[`q${questionIdx + 1}_c${criteriaIdx + 1}`] = value;
+            // 否则跳转到下一个 sample
+            showPage(questionIdx + 1);
         }
 
         function saveAnswers(questionIdx) {
-            for (let c = 1; c <= 7; c++) {
-                const radios = document.getElementsByName(`q${questionIdx}_c${c}`);
+            CRITERIA_INFO.forEach(crit => {
+                const radios = document.getElementsByName(`q${questionIdx}_c${crit.id}`);
                 let value = '';
                 for (const radio of radios) {
                     if (radio.checked) { value = radio.value; break; }
                 }
-                studyData.results[`q${questionIdx + 1}_c${c}`] = value;
-            }
+                studyData.results[`q${questionIdx + 1}_c${crit.id}`] = value;
+            });
         }
 
         function finishStudy(lastPageIdx) {
             saveAnswers(lastPageIdx);
+            studyCompleted = true;
             document.getElementById('questionPages').style.display = 'none';
             document.getElementById('finalPage').classList.add('active');
-            document.getElementById('kbd-legend').style.display = 'none';
 
             // 自动保存到 Firestore
-            saveToFirestoreData();
+            saveToFirestoreData(false);
         }
 
         // 保存到 Firestore
-        function saveToFirestoreData() {
+        function saveToFirestoreData(partial = false) {
             const timestamp = new Date().toISOString();
 
             // 转换函数: left -> A, right -> B, cannot -> N
@@ -1474,6 +1264,9 @@
 
             const jsonData = {
                 timestamp: timestamp,
+                partial: partial,
+                isTest: TEST_EMAILS.includes(studyData.email),
+                email: studyData.email,
                 results: studyData.questions.map((q, idx) => ({
                     presentationOrder: idx + 1,
                     questionId: q.questionNum,
@@ -1484,13 +1277,8 @@
                     methodA: q.method1,
                     methodB: q.method2,
                     criteria: {
-                        textAlignment: convertValue(studyData.results[`q${idx + 1}_c1`]),
-                        plausibility: convertValue(studyData.results[`q${idx + 1}_c2`]),
-                        geometryTexture: convertValue(studyData.results[`q${idx + 1}_c3`]),
-                        textureDetails: convertValue(studyData.results[`q${idx + 1}_c4`]),
-                        geometryDetails: convertValue(studyData.results[`q${idx + 1}_c5`]),
-                        overallQuality: convertValue(studyData.results[`q${idx + 1}_c6`]),
-                        styleAlignment: convertValue(studyData.results[`q${idx + 1}_c7`])
+                        overallQuality: convertValue(studyData.results[`q${idx + 1}_c1`]),
+                        styleAlignment: convertValue(studyData.results[`q${idx + 1}_c2`])
                     }
                 }))
             };
@@ -1505,7 +1293,51 @@
 
         let pendingData = null;
 
-        function startStudy() {
+        async function startStudy() {
+            const emailInput = document.getElementById('participant-email');
+            const emailError = document.getElementById('email-error');
+            const email = emailInput.value.trim().toLowerCase();
+
+            // Basic format check
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                emailError.textContent = 'Please enter a valid email address.';
+                emailError.style.display = 'block';
+                emailInput.focus();
+                return;
+            }
+
+            // Disable button while checking
+            const btn = document.querySelector('#page0 .btn');
+            btn.disabled = true;
+            btn.textContent = 'Checking…';
+            emailError.style.display = 'none';
+
+            const isTest = TEST_EMAILS.includes(email);
+            if (!isTest) {
+                try {
+                    const exists = await window.checkEmailExists(email);
+                    if (exists) {
+                        emailError.textContent = 'This email has already participated in the study. Thank you for your participation!';
+                        emailError.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = 'Start Study';
+                        return;
+                    }
+                    // Register immediately so a second tab/refresh is also blocked
+                    await window.registerParticipant(email);
+                } catch (e) {
+                    console.error('Email check/register failed:', e);
+                    emailError.textContent = 'Unable to connect. Please check your internet connection and try again.';
+                    emailError.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Start Study';
+                    return;
+                }
+            }
+
+            studyData.email = email;
+
             // 显示 sample guide 页面
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('sampleGuidePage').classList.add('active');
@@ -1518,14 +1350,19 @@
             document.getElementById('sampleGuidePage').classList.remove('active');
             showPage(0);
         }
+
+        function savePartialResults() {
+            if (studyCompleted) return;
+            if (!studyData.questions.length) return;
+            const hasAnyAnswer = Object.values(studyData.results).some(v => v !== '');
+            if (!hasAnyAnswer) return;
+            saveToFirestoreData(true);
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') savePartialResults();
+        });
+        window.addEventListener('pagehide', savePartialResults);
     </script>
-    <!-- Fixed keyboard shortcut legend (visible only on question pages) -->
-    <div id="kbd-legend">
-        <div class="legend-title">Keyboard shortcuts</div>
-        <div class="legend-row"><kbd>1</kbd> Method A is better</div>
-        <div class="legend-row"><kbd>2</kbd> Method B is better</div>
-        <div class="legend-row"><kbd>3</kbd> Cannot decide</div>
-        <div class="legend-row"><kbd>Space</kbd> Next</div>
-    </div>
 </body>
 </html>
