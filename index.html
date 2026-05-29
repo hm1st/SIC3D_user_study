@@ -595,8 +595,15 @@
         }
 
         .wireframe-q-block .wireframe-options {
-            flex-direction: column;
+            flex-direction: row;
+            flex-wrap: wrap;
             align-items: stretch;
+        }
+
+        .wireframe-q-block .wireframe-options .option {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
         }
 
         .wireframe-q-title {
@@ -875,7 +882,7 @@
                         <!-- 顶部 Header -->
                         <div class="wireframe-header">
                             <span class="wireframe-tag">①</span>
-                            <span>Sample 1 of 10</span>
+                            <span>Sample 1 of 20</span>
                         </div>
 
                         <!-- 主内容区 -->
