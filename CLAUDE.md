@@ -23,30 +23,36 @@ xdg-open index.html
 
 ## Workflow
 
-1. User opens `index.html` in a browser
-2. Reads the evaluation criteria (2 questions; Overall Object Quality is explained via 5 underlying aspects)
-3. Compares 4-view renderings of Method A vs Method B for 20 questions (order randomized per session)
-4. For each sample answers both questions (shown side by side) by selecting: "Method A is better" / "Method B is better" / "Cannot decide"
-5. Submits — results upload to Firestore (`study_results` collection in project `sic3d-user-study`)
+Page sequence: `startPage` → `infoPage` → `consentPage` → `page0` (task instructions) → `sampleGuidePage` → question pages → `finalPage`. Static pages navigate via `showStaticPage(id)`.
+
+1. User opens `index.html` in a browser and lands on a welcome page (`startPage`), then reads the "Participant Information Details" page (`infoPage`, content from `../SIC3D_Information_Sheet.docx`).
+2. On the "Participant Consent Details" page (`consentPage`, content from `../SIC3D_consent_form.docx`) the user must tick all 9 consent checkboxes AND enter their email address before the study starts. A highlighted "I agree to all" checkbox (`#consent-check-all`, not counted in the 9) ticks/unticks all of them and stays in sync with the individual boxes. The email is checked against the Firestore `participants` collection — an email that already participated is rejected. Emails in `TEST_EMAILS` bypass the check, are not registered, and their results carry `isTest: true`. The consent time is recorded as `consentTimestamp`.
+3. Reads the evaluation criteria (2 questions; Overall Object Quality is explained via 5 underlying aspects)
+4. Compares 4-view renderings of Method A vs Method B for 20 questions (order randomized per session)
+5. For each sample answers both questions (shown side by side) by selecting: "Method A is better" / "Method B is better" / "Cannot decide"
+6. Submits — results upload to Firestore (`study_results` collection in project `sic3d-user-study`). If the tab is hidden or closed before finishing, a partial document (`partial: true`) is auto-saved.
 
 ## Code Architecture
 
-- **Two files**: page logic in `index.html`, per-question config in `questions.js`
-- **Data structure**: `window.QUESTION_DATA` array in `questions.js` is the source of truth. `index.html` reads it via `<script src="questions.js">` and derives `NUM_QUESTIONS = QUESTION_DATA.length`. Do not redefine `QUESTION_DATA` in `index.html`. Adding/removing questions only requires editing `questions.js` (and copying the matching image files).
-- **Methods**: 6 methods available - `SIC3D`, `SIC3D_trellis`, `g-style`, `sgsst`, `styleGS`, `style_prompt`
-- **Images**: Stored in `images/q{1..20}/{method}/` folders, named `{prompt_id}_{seed}_rgb_{view}.png`
+- **Two files**: page logic in `index.html`, per-question config in `samples/questions.js`
+- **Data structure**: `window.QUESTION_DATA` array in `samples/questions.js` is the source of truth. `index.html` reads it via `<script src="samples/questions.js">` and derives `NUM_QUESTIONS = QUESTION_DATA.length`. Do not redefine `QUESTION_DATA` in `index.html`. Adding/removing questions only requires editing `questions.js` (and adding the matching `samples/s{N}` image folder).
+- **Methods**: the draw pool `ALL_METHODS` has 5 methods - `SIC3D`, `g-style`, `sgsst`, `styleGS`, `style_prompt`. `SIC3D_trellis` images still exist in every sample folder but the method is excluded from the pool.
+- **Images**: Stored in `samples/s{1..20}/{method}/` folders, named `rgb_{view}.png` plus one `style.png`
 - **Views**: Fixed at 4 angles [0, 30, 60, 90] degrees
-- **Results**: Submitted to Firestore via `saveToFirestoreData()`. Each result entry has `presentationOrder`, `questionId`, `prompt`, `promptId`, `seed`, `methodA`, `methodB`, plus a `criteria` object with 2 fields: `overallQuality` (c1) and `styleAlignment` (c2). Older records may still contain the legacy 7-field criteria.
+- **Results**: Submitted to Firestore via `saveToFirestoreData()`. Each document has `timestamp`, `partial`, `isTest`, `email`, `consentGiven`, `consentTimestamp`, and a `results` array whose entries have `presentationOrder`, `questionId`, `prompt`, `style`, `promptId`, `seed`, `methodA`, `methodB`, plus a `criteria` object with 2 fields: `overallQuality` (c1) and `styleAlignment` (c2), valued `A`/`B`/`N`. Older records may still contain the legacy 7-field criteria.
 
 ## Key JavaScript Functions
 
 | Function | Purpose |
 |----------|---------|
-| `generateStudyData()` | Per-question: pick 2 random methods. Then shuffle the 20 questions for this session. |
+| `generateStudyData()` | Per-question: pick 2 random methods from `ALL_METHODS`. Then shuffle the 20 questions for this session. |
 | `createQuestionPages()` | Dynamically builds the question pages from `studyData.questions` (two criterion blocks side by side + one Next button) |
 | `markCriteriaAnswered()` | Enables the page's Next button once both questions are answered |
 | `goToNext()` | Validates both answers, saves them, navigates to next sample (or submits) |
-| `saveToFirestoreData()` | Uploads the JSON result document to Firestore |
+| `showStaticPage(id)` | Navigates between the static pages (start / info / consent / instructions / guide) |
+| `startStudy()` | Requires all 9 consent checkboxes ticked, validates the email, runs the duplicate check, registers the participant, then shows the task instructions |
+| `saveToFirestoreData()` | Uploads the JSON result document to Firestore (`partial=true` for mid-study auto-saves) |
+| `savePartialResults()` | Called on `visibilitychange`/`pagehide`; uploads a partial document if any answer exists |
 
 ## Evaluation Criteria (2 Questions)
 
@@ -56,11 +62,11 @@ xdg-open index.html
 ## Image Naming Convention
 
 ```
-images/q{question_num}/{method}/{prompt_id}_{seed}_rgb_{view}.png
-images/q{question_num}/{method}/{prompt_id}_{seed}_style.png
+samples/s{question_num}/{method}/rgb_{view}.png
+samples/s{question_num}/{method}/style.png
 ```
 
-- `method`: One of 6 methods
-- `prompt_id`, `seed`: Model configuration IDs
+- `method`: One of the 6 method folders (5 are in the draw pool)
 - `view`: Camera angle (0, 30, 60, 90)
-- `_style.png`: Style reference rendering
+- `style.png`: Style reference rendering — the one shown is taken from whichever method lands in the `method1` slot
+- `prompt_id` and `seed` are no longer part of the filenames; they live in `samples/questions.js` and are recorded with each result

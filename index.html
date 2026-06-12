@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIC3D User Study</title>
+    <title>Comparing Renderings of Stylised 3D Objects</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
@@ -406,12 +406,29 @@
         .final-page { text-align: center; padding: 50px; }
         .final-page h2 { color: #28a745; margin-bottom: 20px; }
 
+        .welcome-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); max-width: 760px; margin: 0 auto 30px; }
+        .welcome-card p { color: #555; line-height: 1.8; margin-bottom: 14px; }
+        .welcome-card ul { margin-left: 20px; color: #555; line-height: 1.8; }
+
+        .consent-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 14px; margin-bottom: 8px; background: #f8f9fa; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+        .consent-item:hover { background: #eef1ff; border-color: #c9d4f5; }
+        .consent-item input { margin-top: 4px; width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; }
+        .consent-item span { color: #555; line-height: 1.6; font-size: 0.95em; }
+        .consent-item.consent-all { background: #eef1ff; border-color: #c9d4f5; }
+        .consent-item.consent-all span { color: #333; }
+
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
+        .contact-card { background: #f8f9fa; border-radius: 8px; padding: 12px 14px; font-size: 0.9em; color: #555; line-height: 1.6; }
+        .contact-card strong { color: #333; }
+
+        .page-nav-buttons { text-align: center; margin: 30px 0; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+
         /* ===== 两列布局 ===== */
         .guide-two-column {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.6fr 1fr;
             gap: 30px;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -799,9 +816,229 @@
 </head>
 <body>
 
-    <div class="page active" id="page0">
+    <!-- Starting page -->
+    <div class="page active" id="startPage">
         <div class="header">
-            <h1>SIC3D: Style Image Conditioned Text-to-3D Gaussian Splatting Generation User Study</h1>
+            <h1>Comparing Renderings of Stylised 3D Objects</h1>
+            <p>A research study by the School of Computer Science, University of Sheffield</p>
+        </div>
+
+        <div class="welcome-card">
+            <h2 style="color: #333; margin-bottom: 18px;">Welcome!</h2>
+            <p>Thank you for your interest in this study. You are invited to take part in a short online questionnaire evaluating computer-generated 3D objects.</p>
+            <p>In this study you will:</p>
+            <ul>
+                <li>Compare <strong>20 pairs</strong> of 3D-generated objects (Method A vs Method B), each shown from four viewpoints alongside a text prompt and a style reference image.</li>
+                <li>Answer <strong>2 questions</strong> per pair: overall object quality and style alignment.</li>
+            </ul>
+            <p style="margin-top: 14px;">The whole process takes approximately <strong>10&ndash;15 minutes</strong>. There is a single session with no follow-up required.</p>
+            <p>Before you begin, you will be asked to read the participant information details and complete a consent form. This project has been ethically approved via the University of Sheffield's Ethics Review Procedure.</p>
+        </div>
+
+        <div class="start-section">
+            <button class="btn" onclick="showStaticPage('infoPage')">Get Started</button>
+        </div>
+    </div>
+
+    <!-- Participant information page -->
+    <div class="page" id="infoPage">
+        <div class="header">
+            <h1>Participant Information Details</h1>
+            <p>Research Project Title: Style Image Conditioned 3D Object Stylisation &mdash; dated 25/06/2026</p>
+        </div>
+
+        <div class="instructions">
+            <p>We are inviting you to take part in a research project. Before you decide if you would like to take part, it is important for you to understand why the research is being done and what it will involve. Please read the following information carefully and discuss it with others if you wish. Ask us if there is anything you do not understand or if you would like more information. Take time to decide whether or not you want to take part.</p>
+
+            <h3>1. What is the project's purpose?</h3>
+            <p>3D object generation is the process of creating three-dimensional digital objects from text descriptions. This PhD research, based at the University of Sheffield, introduces a new method called SIC3D that generates a 3D object from a text description and then applies the visual style of a reference image to it &mdash; for example, generating a 3D pyramid and giving it the appearance of fire or a painting by a specific artist.</p>
+            <p>This user study is part of the PhD thesis and aims to evaluate how human observers perceive the quality and visual style of 3D objects generated by SIC3D compared to other existing methods.</p>
+
+            <h3>2. Why have I been invited to participate?</h3>
+            <p>You are being invited because you are a member of the University of Sheffield community (staff or student) or a personal contact of the researcher. There are no specialist requirements &mdash; any adult who can clearly view images on a screen is eligible to take part.</p>
+
+            <h3>3. Do I have to take part?</h3>
+            <p>It is up to you to decide whether or not to take part. If you do decide to take part you will be given this information sheet to keep and be asked to agree to a consent form. You can withdraw at any time. You do not have to give a reason and there will be no negative consequences.</p>
+            <p>If you wish to withdraw from the research, please note that once you have completed and submitted the questionnaire, your data cannot be deleted.</p>
+            <p>Taking part in this research is voluntary and will not create a legally binding agreement or any form of employment with the University of Sheffield.</p>
+
+            <h3>4. What will happen to me if I take part? What do I have to do?</h3>
+            <p>You will be asked to complete an online questionnaire via a study website. The study involves a single session with no follow-up required. You will evaluate a fixed set of 20 samples. Each sample asks you to compare two 3D-generated objects (Method A and Method B). For each sample you will be shown:</p>
+            <ul>
+                <li>A text prompt that was used to generate the object (e.g. "An ancient Egyptian pyramid").</li>
+                <li>A style reference image (e.g. a photograph of fire or a painting).</li>
+                <li>A side-by-side comparison image showing both objects from four different viewpoints: Method A on the left, Method B on the right.</li>
+            </ul>
+            <p>You will then answer 2 questions for each sample by selecting one of three options &mdash; "Method A is better", "Method B is better", or "Cannot decide" &mdash; for the following criteria:</p>
+            <ul>
+                <li><strong>Overall Object Quality</strong> &mdash; which object is better overall, taking into account its shape accuracy, texture quality, 3D plausibility, and how well the texture fits the geometry.</li>
+                <li><strong>Style Alignment</strong> &mdash; which object better reflects the colour palette and visual style of the reference image.</li>
+            </ul>
+            <p>All images shown are computer-generated renderings of everyday objects (e.g. a hat, a handbag, a pyramid) with artistic styles applied. The images do not contain any inappropriate or dangerous content.</p>
+            <p>The whole process takes approximately 10-15 minutes.</p>
+
+            <h3>5. What are the possible disadvantages and risks of taking part?</h3>
+            <p>There are no anticipated risks or disadvantages. If at any point you decide you do not want to continue, you are free to stop but your previous responses will be included in the collected dataset.</p>
+
+            <h3>6. What are the possible benefits of taking part?</h3>
+            <p>There are no direct benefits to participants. It is hoped that this research will contribute to advancing the quality and controllability of AI-generated 3D content, with applications in areas such as games, film, and virtual environments.</p>
+
+            <h3>7. Will my taking part in this project be kept confidential?</h3>
+            <p>Your questionnaire responses will be kept strictly confidential. Only the researcher (Ming He) and supervisors (Dr Steve Maddock and Dr Zhixiang Chen) will have access to the data. Your email address will not be shared with any third party. It will be stored separately from your questionnaire responses.</p>
+            <p>Results presented in the PhD thesis and any subsequent publications will be anonymised and aggregated. Your individual responses will not be attributed to you in any publication.</p>
+
+            <h3>8. Data Protection</h3>
+            <p>Your email address and questionnaire responses will be stored securely on the University of Sheffield's Google Drive, accessible only to the researcher and supervisors. Your email address will be stored in a separate folder from your responses and will be deleted once it is no longer needed.</p>
+            <p>Email addresses will be destroyed as soon as the data collection period has ended. Anonymised questionnaire response data will be retained after the PhD project in accordance with EPSRC best practice, which requires secure retention for a minimum of 10 years from the expiry of the researcher's privileged access period.</p>
+            <p>This research is carried out in the public interest in accordance with data protection legislation (Article 6(1)(e) UK GDPR). Further information can be found in the University's Privacy Notice: <a href="https://www.sheffield.ac.uk/govern/data-protection/privacy/general" target="_blank" rel="noopener">https://www.sheffield.ac.uk/govern/data-protection/privacy/general</a>.</p>
+            <p>The University of Sheffield will act as the Data Controller for this study. This means that the University is responsible for looking after your information and using it properly.</p>
+
+            <h3>9. What will happen to the data collected and the results of the research?</h3>
+            <p>The results of this project will be analysed and presented as part of the researcher's PhD thesis at the University of Sheffield. Anonymised and summarised results will be included in the thesis and in subsequent research publications.</p>
+            <p>The aim is that anonymised data collected during the project will be retained and stored in the University of Sheffield's open data repository (ORDA) following project completion, where it will be accessible for future research purposes. No identifiable personal data will be shared.</p>
+
+            <h3>10. Who is organising and funding the research?</h3>
+            <p>This research is part of a PhD project organised and conducted at the University of Sheffield, School of Computer Science. No external funding is required for this data collection.</p>
+
+            <h3>11. Who has ethically reviewed the project?</h3>
+            <p>This project has been ethically approved via the University of Sheffield's Ethics Review Procedure, as administered by the School of Computer Science. The University's Research Ethics Committee monitors the application and delivery of the University's Ethics Review Procedure across the University.</p>
+
+            <h3>12. What if something goes wrong and I wish to complain about the research?</h3>
+            <p>If you would like to complain about any aspect of the research, or if you feel that you have been exploited, abused or harmed as a result of taking part, please contact:</p>
+            <ul>
+                <li>Ming He &mdash; <a href="mailto:mhe27@sheffield.ac.uk">mhe27@sheffield.ac.uk</a></li>
+                <li>Dr Steve Maddock (Main Supervisor) &mdash; <a href="mailto:s.maddock@sheffield.ac.uk">s.maddock@sheffield.ac.uk</a></li>
+                <li>Dr Zhixiang Chen (Second Supervisor) &mdash; <a href="mailto:zhixiang.chen@sheffield.ac.uk">zhixiang.chen@sheffield.ac.uk</a></li>
+            </ul>
+            <p>If you feel your complaint has not been handled satisfactorily, you can contact the Head of the School of Computer Science, Professor Heidi Christensen (<a href="mailto:heidi.christensen@sheffield.ac.uk">heidi.christensen@sheffield.ac.uk</a>), who will escalate the complaint through the appropriate channels.</p>
+            <p>If your complaint concerns how your personal data has been handled, information about how to raise a complaint can be found in the University's Privacy Notice: <a href="https://www.sheffield.ac.uk/govern/data-protection/privacy/general" target="_blank" rel="noopener">https://www.sheffield.ac.uk/govern/data-protection/privacy/general</a>.</p>
+
+            <h3>13. Contact for further information</h3>
+            <p>If you require any further information, please contact:</p>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <strong>Ming He</strong> (Researcher)<br>
+                    Email: <a href="mailto:mhe27@sheffield.ac.uk">mhe27@sheffield.ac.uk</a>
+                </div>
+                <div class="contact-card">
+                    <strong>Dr Steve Maddock</strong> (Main Supervisor)<br>
+                    Email: <a href="mailto:s.maddock@sheffield.ac.uk">s.maddock@sheffield.ac.uk</a><br>
+                    School of Computer Science, University of Sheffield<br>
+                    Regent Court, 211 Portobello, Sheffield, S1 4DP
+                </div>
+                <div class="contact-card">
+                    <strong>Dr Zhixiang Chen</strong> (Second Supervisor)<br>
+                    Email: <a href="mailto:zhixiang.chen@sheffield.ac.uk">zhixiang.chen@sheffield.ac.uk</a><br>
+                    School of Computer Science, University of Sheffield<br>
+                    Regent Court, 211 Portobello, Sheffield, S1 4DP
+                </div>
+            </div>
+
+            <p style="margin-top: 20px;"><strong>Thank you very much for considering taking part in this project.</strong></p>
+            <p>Please save or print a copy of this page for your records (you can use your browser's print function, e.g. Ctrl+P / Cmd+P).</p>
+        </div>
+
+        <div class="page-nav-buttons">
+            <button class="btn btn-secondary" onclick="showStaticPage('startPage')">Back</button>
+            <button class="btn" onclick="showStaticPage('consentPage')">Continue to Consent Details</button>
+        </div>
+    </div>
+
+    <!-- Consent page -->
+    <div class="page" id="consentPage">
+        <div class="header">
+            <h1>Participant Consent Details</h1>
+            <p>Please read each statement carefully and tick all boxes to confirm your consent</p>
+        </div>
+
+        <div class="instructions">
+            <p style="margin-bottom: 15px;">If you do not agree with any of the statements below, please do not proceed with the study.</p>
+
+            <label class="consent-item consent-all">
+                <input type="checkbox" id="consent-check-all" onchange="toggleAllConsent(this.checked)">
+                <span><strong>I agree to all of the statements below.</strong> (Tick this box to select all)</span>
+            </label>
+
+            <h2 style="margin-top: 25px;">Taking Part in the Project</h2>
+
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I have read and understood the project information details dated 25/06/2026 or the project has been fully explained to me.</span>
+            </label>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I have been given the chance to ask questions about the project.</span>
+            </label>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I understand how to raise a concern or make a complaint.</span>
+            </label>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I agree to take part in the project. I understand that taking part in the project will include completing a questionnaire.</span>
+            </label>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I understand that by choosing to participate as a volunteer in this research, this does not create a legally binding agreement nor is it intended to create an employment relationship with the University of Sheffield.</span>
+            </label>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I understand that I can withdraw from the study at any time before completing and submitting the questionnaire, without giving any reason and without any negative consequences.</span>
+            </label>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I understand that once I have completed and submitted the questionnaire, my data cannot be withdrawn or deleted.</span>
+            </label>
+
+            <h2 style="margin-top: 25px;">How my information will be used during and after the project</h2>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I understand my personal details such as email address will not be seen by anyone outside the project.</span>
+            </label>
+            <label class="consent-item">
+                <input type="checkbox" class="consent-check">
+                <span>I understand and agree that my answers may be quoted in publications, reports, web pages, and other research outputs. I understand that I will not be named in these outputs.</span>
+            </label>
+
+            <h3 style="margin-top: 25px;">Project contact details for further information</h3>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <strong>Ming He</strong>, School of Computer Science, The University of Sheffield<br>
+                    Email: <a href="mailto:mhe27@sheffield.ac.uk">mhe27@sheffield.ac.uk</a>
+                </div>
+                <div class="contact-card">
+                    <strong>Dr Steve Maddock</strong> (Main Supervisor), Senior Lecturer in Computer Science, The University of Sheffield, Regent Court, 211 Portobello, Sheffield, S1 4DP<br>
+                    Email: <a href="mailto:s.maddock@sheffield.ac.uk">s.maddock@sheffield.ac.uk</a>
+                </div>
+                <div class="contact-card">
+                    <strong>Dr Zhixiang Chen</strong> (Secondary Supervisor), Lecturer in Computer Science, The University of Sheffield, Regent Court, 211 Portobello, Sheffield, S1 4DP<br>
+                    Email: <a href="mailto:zhixiang.chen@sheffield.ac.uk">zhixiang.chen@sheffield.ac.uk</a>
+                </div>
+            </div>
+            <p style="margin-top: 15px;">Please save or print a copy of this page for your records.</p>
+        </div>
+
+        <div class="start-section">
+            <div id="email-section" style="margin-bottom: 18px; text-align: center;">
+                <div>
+                    <label for="participant-email" style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 15px;">Your email address</label>
+                    <input type="email" id="participant-email" placeholder="example@email.com"
+                        style="padding: 10px 16px; font-size: 15px; border: 2px solid #ddd; border-radius: 8px; width: 320px; outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#4a90d9'" onblur="this.style.borderColor='#ddd'"
+                        onkeydown="if(event.key==='Enter') startStudy()">
+                </div>
+                <p id="email-error" style="color: #e53e3e; margin-top: 8px; font-size: 14px; display: none;"></p>
+            </div>
+            <div class="page-nav-buttons" style="margin: 0;">
+                <button class="btn btn-secondary" onclick="showStaticPage('infoPage')">Back</button>
+                <button class="btn" id="consent-start-btn" onclick="startStudy()">I Consent &mdash; Start the Study</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page" id="page0">
+        <div class="header">
+            <h1>Comparing Renderings of Stylised 3D Objects</h1>
             <p>Please evaluate 3D generation models by comparing renderings</p>
         </div>
 
@@ -848,17 +1085,7 @@
         </div>
 
         <div class="start-section">
-            <div id="email-section" style="margin-bottom: 18px; text-align: center;">
-                <div>
-                    <label for="participant-email" style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 15px;">Your email address</label>
-                    <input type="email" id="participant-email" placeholder="example@email.com"
-                        style="padding: 10px 16px; font-size: 15px; border: 2px solid #ddd; border-radius: 8px; width: 320px; outline: none; transition: border-color 0.2s;"
-                        onfocus="this.style.borderColor='#4a90d9'" onblur="this.style.borderColor='#ddd'"
-                        onkeydown="if(event.key==='Enter') startStudy()">
-                </div>
-                <p id="email-error" style="color: #e53e3e; margin-top: 8px; font-size: 14px; display: none;"></p>
-            </div>
-            <button class="btn" onclick="startStudy()">Start Study</button>
+            <button class="btn" onclick="showStaticPage('sampleGuidePage')">Continue</button>
         </div>
     </div>
 
@@ -877,112 +1104,9 @@
                 <div class="instructions">
                     <h2>Page Layout Overview</h2>
 
-                    <!-- 重新设计的页面线框图 -->
-                    <div class="wireframe-container">
-                        <!-- 顶部 Header -->
-                        <div class="wireframe-header">
-                            <span class="wireframe-tag">①</span>
-                            <span>Sample 1 of 20</span>
-                        </div>
-
-                        <!-- 主内容区 -->
-                        <div class="wireframe-content">
-                            <!-- 左侧：Prompt + Style -->
-                            <div class="wireframe-left">
-                                <div class="wireframe-prompt">
-                                    <span class="wireframe-tag">②</span>
-                                    <span>"A fox"</span>
-                                </div>
-                                <div class="wireframe-style">
-                                    <span class="wireframe-tag">③</span>
-                                    <div class="wireframe-style-box">Style</div>
-                                </div>
-                            </div>
-
-                            <!-- 右侧：Method A/B 对比 -->
-                            <div class="wireframe-right">
-                                <div class="wireframe-methods">
-                                    <div class="wireframe-method">
-                                        <span class="wireframe-tag">④</span>
-                                        <span class="method-badge method-a">Method A</span>
-                                        <div class="wireframe-views">
-                                            <div class="wireframe-view"></div>
-                                            <div class="wireframe-view"></div>
-                                            <div class="wireframe-view"></div>
-                                            <div class="wireframe-view"></div>
-                                        </div>
-                                    </div>
-                                    <div class="wireframe-method">
-                                        <span class="wireframe-tag">⑤</span>
-                                        <span class="method-badge method-b">Method B</span>
-                                        <div class="wireframe-views">
-                                            <div class="wireframe-view"></div>
-                                            <div class="wireframe-view"></div>
-                                            <div class="wireframe-view"></div>
-                                            <div class="wireframe-view"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 问题区域 - 左右两块 -->
-                        <div class="wireframe-question">
-                            <span class="wireframe-tag">⑥</span>
-                            <div class="wireframe-q-blocks">
-                                <div class="wireframe-q-block">
-                                    <div class="wireframe-q-title">Overall Object Quality</div>
-                                    <div class="wireframe-options">
-                                        <span class="option">[ ] Method A is better</span>
-                                        <span class="option">[ ] Method B is better</span>
-                                        <span class="option">[ ] Cannot decide</span>
-                                    </div>
-                                </div>
-                                <div class="wireframe-q-block">
-                                    <div class="wireframe-q-title">Style Alignment</div>
-                                    <div class="wireframe-options">
-                                        <span class="option">[ ] Method A is better</span>
-                                        <span class="option">[ ] Method B is better</span>
-                                        <span class="option">[ ] Cannot decide</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Next 按钮区域 -->
-                        <div class="wireframe-next">
-                            <span class="wireframe-tag">⑦</span>
-                            <button class="wireframe-btn">Next</button>
-                        </div>
-                    </div>
-
-                    <!-- 布局说明 -->
-                    <div class="layout-legend">
-                        <div class="legend-item">
-                            <span class="legend-num">①</span>
-                            <span class="legend-label">Page Progress</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-num">②</span>
-                            <span class="legend-label">Text Prompt</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-num">③</span>
-                            <span class="legend-label">Style Reference</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-num">④⑤</span>
-                            <span class="legend-label">Method A / B</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-num">⑥</span>
-                            <span class="legend-label">Two Questions</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-num">⑦</span>
-                            <span class="legend-label">Next (enabled after both answered)</span>
-                        </div>
-                    </div>
+                    <!-- 标注版示例页截图 -->
+                    <img src="sample_page.png" alt="Annotated example of a sample page: title, page progress, text prompt, style image, Method A/B renderings, and the two questions"
+                        style="width: 100%; margin-top: 10px; border: 1px solid #eee; border-radius: 8px; display: block;">
                 </div>
             </div>
 
@@ -1038,14 +1162,13 @@
         const NUM_QUESTIONS = QUESTION_DATA.length;
         const FIXED_VIEWS = [0, 30, 60, 90];
 
-        // Keyboard shortcuts: 1=Left, 2=Right, 3=Cannot, Space=Next
         const ALL_METHODS = ['SIC3D', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
 
         // Test emails bypass the duplicate check (can re-take), are not registered,
         // and their results are tagged isTest:true so analysis can exclude them.
         const TEST_EMAILS = ['mhe27@sheffield.ac.uk'];
 
-        let studyData = { questions: [], results: {}, email: '' };
+        let studyData = { questions: [], results: {}, email: '', consentTimestamp: '' };
         let studyCompleted = false;
 
         function shuffle(array) {
@@ -1145,7 +1268,7 @@
 
                 page.innerHTML = `
                     <div class="page-header">
-                        <h1>SIC3D: Style Image Conditioned Text-to-3D Gaussian Splatting Generation User Study</h1>
+                        <h1>Comparing Renderings of Stylised 3D Objects</h1>
                         <!-- <div class="keyboard-hint">
                             <span class="key">1</span> Method A
                             <span class="key">2</span> Method B
@@ -1215,6 +1338,24 @@
             window.scrollTo(0, 0);
         }
 
+        // 静态页面导航（start / info / consent / instructions / guide）
+        function showStaticPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // "全部同意" 勾选联动
+        function toggleAllConsent(checked) {
+            document.querySelectorAll('.consent-check').forEach(c => { c.checked = checked; });
+        }
+        document.querySelectorAll('.consent-check').forEach(c => {
+            c.addEventListener('change', () => {
+                const allTicked = Array.from(document.querySelectorAll('.consent-check')).every(x => x.checked);
+                document.getElementById('consent-check-all').checked = allTicked;
+            });
+        });
+
         function goToNext(questionIdx) {
             // 检查两个问题都已选择答案
             const allAnswered = CRITERIA_INFO.every(crit => isCriterionAnswered(questionIdx, crit.id));
@@ -1274,6 +1415,8 @@
                 partial: partial,
                 isTest: TEST_EMAILS.includes(studyData.email),
                 email: studyData.email,
+                consentGiven: true,
+                consentTimestamp: studyData.consentTimestamp || null,
                 results: studyData.questions.map((q, idx) => ({
                     presentationOrder: idx + 1,
                     questionId: q.questionNum,
@@ -1305,6 +1448,15 @@
             const emailError = document.getElementById('email-error');
             const email = emailInput.value.trim().toLowerCase();
 
+            // All consent boxes must be ticked
+            const consentChecks = document.querySelectorAll('.consent-check');
+            const allTicked = Array.from(consentChecks).every(c => c.checked);
+            if (!allTicked) {
+                emailError.textContent = 'Please tick all the consent boxes above before starting. If you do not agree with any statement, please do not proceed.';
+                emailError.style.display = 'block';
+                return;
+            }
+
             // Basic format check
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
@@ -1315,7 +1467,7 @@
             }
 
             // Disable button while checking
-            const btn = document.querySelector('#page0 .btn');
+            const btn = document.getElementById('consent-start-btn');
             btn.disabled = true;
             btn.textContent = 'Checking…';
             emailError.style.display = 'none';
@@ -1328,7 +1480,7 @@
                         emailError.textContent = 'This email has already participated in the study. Thank you for your participation!';
                         emailError.style.display = 'block';
                         btn.disabled = false;
-                        btn.textContent = 'Start Study';
+                        btn.textContent = 'I Consent — Start the Study';
                         return;
                     }
                     // Register immediately so a second tab/refresh is also blocked
@@ -1338,16 +1490,16 @@
                     emailError.textContent = 'Unable to connect. Please check your internet connection and try again.';
                     emailError.style.display = 'block';
                     btn.disabled = false;
-                    btn.textContent = 'Start Study';
+                    btn.textContent = 'I Consent — Start the Study';
                     return;
                 }
             }
 
             studyData.email = email;
+            studyData.consentTimestamp = new Date().toISOString();
 
-            // 显示 sample guide 页面
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('sampleGuidePage').classList.add('active');
+            // 显示任务说明页面
+            showStaticPage('page0');
         }
 
         function startSampleStudy() {
