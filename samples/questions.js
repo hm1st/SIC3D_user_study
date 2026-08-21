@@ -1,7 +1,7 @@
 window.QUESTION_DATA = [
     {"q": 1, "prompt_id": 1, "seed": 20389, "prompt": "A torn hat", "style": "northern light"},
-    {"q": 2, "prompt_id": 6, "seed": 9264, "prompt": "A torn hat", "style": "van gogh"},
-    {"q": 3, "prompt_id": 7, "seed": 22009, "prompt": "An elephant", "style": "wave"},
+    {"q": 2, "prompt_id": 6, "seed": 15121, "prompt": "A torn hat", "style": "van gogh"},
+    {"q": 3, "prompt_id": 7, "seed": 11767, "prompt": "An elephant", "style": "wave"},
     {"q": 4, "prompt_id": 11, "seed": 23423, "prompt": "An elephant", "style": "flower"},
     {"q": 5, "prompt_id": 19, "seed": 14867, "prompt": "A boat", "style": "starry night"},
     {"q": 6, "prompt_id": 22, "seed": 4931, "prompt": "A handbag", "style": "northern light"},

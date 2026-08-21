@@ -1177,7 +1177,7 @@
         </div>
     </div>
 
-    <script src="samples/questions.js"></script>
+    <script src="samples/questions.js?v=20260821-seed-fix"></script>
     <script>
         // Question definitions live in questions.js (window.QUESTION_DATA).
         // Edit that file to modify the questionnaire — do not redefine here.
@@ -1186,6 +1186,7 @@
         const NUM_QUESTIONS = 20;
         const SAMPLE_STRIDE = 2;
         const FIXED_VIEWS = [0, 30, 60, 90];
+        const ASSET_VERSION = '20260821-seed-fix';
 
         const ALL_METHODS = ['SIC3D', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
         const METHOD_PAIRS = [];
@@ -1273,15 +1274,15 @@
 
                 let methodAViewsHTML = '';
                 q.views.forEach(view => {
-                    methodAViewsHTML += `<img src="samples/s${q.questionNum}/${q.method1}/rgb_${view}.png" alt="View ${view}">`;
+                    methodAViewsHTML += `<img src="samples/s${q.questionNum}/${q.method1}/rgb_${view}.png?v=${ASSET_VERSION}" alt="View ${view}">`;
                 });
 
                 let methodBViewsHTML = '';
                 q.views.forEach(view => {
-                    methodBViewsHTML += `<img src="samples/s${q.questionNum}/${q.method2}/rgb_${view}.png" alt="View ${view}">`;
+                    methodBViewsHTML += `<img src="samples/s${q.questionNum}/${q.method2}/rgb_${view}.png?v=${ASSET_VERSION}" alt="View ${view}">`;
                 });
 
-                const styleImgPath = `samples/s${q.questionNum}/${q.method1}/style.png`;
+                const styleImgPath = `samples/s${q.questionNum}/${q.method1}/style.png?v=${ASSET_VERSION}`;
 
                 // 创建两个并排的 criterion 块
                 let criteriaBlocks = '<div class="criteria-blocks">';
