@@ -6,7 +6,7 @@
     <title>Comparing Renderings of Stylised 3D Objects</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, doc, runTransaction } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAusmYu4nylqSjuaTceN8bbPKP_wGzXurQ",
@@ -47,9 +47,32 @@
         window.checkEmailExists = checkEmailExists;
 
         async function registerParticipant(email) {
-            await setDoc(doc(db, "participants", emailToKey(email)), {
-                email: email,
-                startedAt: new Date().toISOString()
+            const participantRef = doc(db, "participants", emailToKey(email));
+            const counterRef = doc(db, "study_meta", "assignment_counter");
+
+            return runTransaction(db, async (transaction) => {
+                const participantSnap = await transaction.get(participantRef);
+                if (participantSnap.exists()) {
+                    throw new Error('already-participated');
+                }
+
+                const counterSnap = await transaction.get(counterRef);
+                const assignmentIndex = counterSnap.exists()
+                    ? Number(counterSnap.data().nextParticipantIndex || 0)
+                    : 0;
+                const now = new Date().toISOString();
+
+                transaction.set(counterRef, {
+                    nextParticipantIndex: assignmentIndex + 1,
+                    updatedAt: now
+                }, { merge: true });
+                transaction.set(participantRef, {
+                    email: email,
+                    assignmentIndex: assignmentIndex,
+                    startedAt: now
+                });
+
+                return assignmentIndex;
             });
         }
         window.registerParticipant = registerParticipant;
@@ -863,7 +886,7 @@
             <p>Taking part in this research is voluntary and will not create a legally binding agreement or any form of employment with the University of Sheffield.</p>
 
             <h3>4. What will happen to me if I take part? What do I have to do?</h3>
-            <p>You will be asked to complete an online questionnaire via a study website. The study involves a single session with no follow-up required. You will evaluate a fixed set of 20 samples. Each sample asks you to compare two 3D-generated objects (Method A and Method B). For each sample you will be shown:</p>
+            <p>You will be asked to complete an online questionnaire via a study website. The study involves a single session with no follow-up required. You will evaluate 20 samples assigned from a balanced pool of 30. Each sample asks you to compare two 3D-generated objects (Method A and Method B). For each sample you will be shown:</p>
             <ul>
                 <li>A text prompt that was used to generate the object (e.g. "An ancient Egyptian pyramid").</li>
                 <li>A style reference image (e.g. a photograph of fire or a painting).</li>
@@ -1159,16 +1182,30 @@
         // Question definitions live in questions.js (window.QUESTION_DATA).
         // Edit that file to modify the questionnaire — do not redefine here.
         const QUESTION_DATA = window.QUESTION_DATA;
-        const NUM_QUESTIONS = QUESTION_DATA.length;
+        const POOL_SIZE = QUESTION_DATA.length;
+        const NUM_QUESTIONS = 20;
+        const SAMPLE_STRIDE = 2;
         const FIXED_VIEWS = [0, 30, 60, 90];
 
         const ALL_METHODS = ['SIC3D', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
+        const METHOD_PAIRS = [];
+        for (let i = 0; i < ALL_METHODS.length; i++) {
+            for (let j = i + 1; j < ALL_METHODS.length; j++) {
+                METHOD_PAIRS.push([ALL_METHODS[i], ALL_METHODS[j]]);
+            }
+        }
 
         // Test emails bypass the duplicate check (can re-take), are not registered,
         // and their results are tagged isTest:true so analysis can exclude them.
         const TEST_EMAILS = ['mhe27@sheffield.ac.uk'];
 
-        let studyData = { questions: [], results: {}, email: '', consentTimestamp: '' };
+        let studyData = {
+            questions: [],
+            results: {},
+            email: '',
+            consentTimestamp: '',
+            assignmentIndex: null
+        };
         let studyCompleted = false;
 
         function shuffle(array) {
@@ -1180,20 +1217,35 @@
         }
 
         function generateStudyData() {
-            studyData.questions = QUESTION_DATA.map((q) => {
-                const shuffled = shuffle([...ALL_METHODS]);
+            if (POOL_SIZE !== 30 || METHOD_PAIRS.length !== 10) {
+                throw new Error(`Invalid study design: pool=${POOL_SIZE}, pairs=${METHOD_PAIRS.length}`);
+            }
+            if (!Number.isInteger(studyData.assignmentIndex) || studyData.assignmentIndex < 0) {
+                throw new Error('Missing participant assignment index');
+            }
+
+            const p = studyData.assignmentIndex;
+            studyData.questions = Array.from({ length: NUM_QUESTIONS }, (_, t) => {
+                const poolIndex = (p * SAMPLE_STRIDE + t) % POOL_SIZE;
+                const pairIndex = (t + p) % METHOD_PAIRS.length;
+                const q = QUESTION_DATA[poolIndex];
+                const methods = [...METHOD_PAIRS[pairIndex]];
+                if (Math.random() < 0.5) methods.reverse();
                 return {
                     questionNum: q.q,
                     prompt_id: q.prompt_id,
                     seed: q.seed,
                     prompt: q.prompt,
                     style: q.style,
-                    method1: shuffled[0],
-                    method2: shuffled[1],
+                    method1: methods[0],
+                    method2: methods[1],
+                    poolIndex: poolIndex,
+                    assignmentTrial: t + 1,
+                    methodPairIndex: pairIndex,
                     views: FIXED_VIEWS
                 };
             });
-            // Randomize question order per session
+            // Assign samples and pairs first, then randomize presentation order.
             shuffle(studyData.questions);
         }
 
@@ -1417,8 +1469,18 @@
                 email: studyData.email,
                 consentGiven: true,
                 consentTimestamp: studyData.consentTimestamp || null,
+                assignmentIndex: studyData.assignmentIndex,
+                assignmentDesign: {
+                    poolSize: POOL_SIZE,
+                    samplesPerParticipant: NUM_QUESTIONS,
+                    sampleStride: SAMPLE_STRIDE,
+                    methodPairCount: METHOD_PAIRS.length
+                },
                 results: studyData.questions.map((q, idx) => ({
                     presentationOrder: idx + 1,
+                    assignmentTrial: q.assignmentTrial,
+                    poolIndex: q.poolIndex,
+                    methodPairIndex: q.methodPairIndex,
                     questionId: q.questionNum,
                     prompt: q.prompt,
                     style: q.style,
@@ -1473,6 +1535,7 @@
             emailError.style.display = 'none';
 
             const isTest = TEST_EMAILS.includes(email);
+            let assignmentIndex;
             if (!isTest) {
                 try {
                     const exists = await window.checkEmailExists(email);
@@ -1484,19 +1547,27 @@
                         return;
                     }
                     // Register immediately so a second tab/refresh is also blocked
-                    await window.registerParticipant(email);
+                    assignmentIndex = await window.registerParticipant(email);
                 } catch (e) {
                     console.error('Email check/register failed:', e);
-                    emailError.textContent = 'Unable to connect. Please check your internet connection and try again.';
+                    emailError.textContent = e.message === 'already-participated'
+                        ? 'This email has already participated in the study. Thank you for your participation!'
+                        : 'Unable to connect. Please check your internet connection and try again.';
                     emailError.style.display = 'block';
                     btn.disabled = false;
                     btn.textContent = 'I Consent — Start the Study';
                     return;
                 }
+            } else {
+                const requested = Number(new URLSearchParams(window.location.search).get('assignment'));
+                assignmentIndex = Number.isInteger(requested) && requested >= 0
+                    ? requested % POOL_SIZE
+                    : 0;
             }
 
             studyData.email = email;
             studyData.consentTimestamp = new Date().toISOString();
+            studyData.assignmentIndex = assignmentIndex;
 
             // 显示任务说明页面
             showStaticPage('page0');

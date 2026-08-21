@@ -28,29 +28,30 @@ Page sequence: `startPage` → `infoPage` → `consentPage` → `page0` (task in
 1. User opens `index.html` in a browser and lands on a welcome page (`startPage`), then reads the "Participant Information Details" page (`infoPage`, content from `../SIC3D_Information_Sheet.docx`).
 2. On the "Participant Consent Details" page (`consentPage`, content from `../SIC3D_consent_form.docx`) the user must tick all 9 consent checkboxes AND enter their email address before the study starts. A highlighted "I agree to all" checkbox (`#consent-check-all`, not counted in the 9) ticks/unticks all of them and stays in sync with the individual boxes. The email is checked against the Firestore `participants` collection — an email that already participated is rejected. Emails in `TEST_EMAILS` bypass the check, are not registered, and their results carry `isTest: true`. The consent time is recorded as `consentTimestamp`.
 3. Reads the evaluation criteria (2 questions; Overall Object Quality is explained via 5 underlying aspects)
-4. Compares 4-view renderings of Method A vs Method B for 20 questions (order randomized per session)
+4. Compares 4-view renderings for 20 items assigned from a fixed 30-item pool (order randomized per session)
 5. For each sample answers both questions (shown side by side) by selecting: "Method A is better" / "Method B is better" / "Cannot decide"
 6. Submits — results upload to Firestore (`study_results` collection in project `sic3d-user-study`). If the tab is hidden or closed before finishing, a partial document (`partial: true`) is auto-saved.
 
 ## Code Architecture
 
 - **Two files**: page logic in `index.html`, per-question config in `samples/questions.js`
-- **Data structure**: `window.QUESTION_DATA` array in `samples/questions.js` is the source of truth. `index.html` reads it via `<script src="samples/questions.js">` and derives `NUM_QUESTIONS = QUESTION_DATA.length`. Do not redefine `QUESTION_DATA` in `index.html`. Adding/removing questions only requires editing `questions.js` (and adding the matching `samples/s{N}` image folder).
-- **Methods**: the draw pool `ALL_METHODS` has 5 methods - `SIC3D`, `g-style`, `sgsst`, `styleGS`, `style_prompt`. `SIC3D_trellis` images still exist in every sample folder but the method is excluded from the pool.
-- **Images**: Stored in `samples/s{1..20}/{method}/` folders, named `rgb_{view}.png` plus one `style.png`
+- **Data structure**: `window.QUESTION_DATA` in `samples/questions.js` is the fixed 30-item pool. `POOL_SIZE` is 30 and `NUM_QUESTIONS` is deliberately 20.
+- **Assignment**: production registration atomically allocates `p` from `study_meta/assignment_counter`. Trial `t` uses sample `(2p+t) mod 30` and pair `(t+p) mod 10`; all ten pairs occur twice. Trials are then shuffled and A/B placement randomized.
+- **Methods**: `SIC3D`, `g-style`, `sgsst`, `styleGS`, and `style_prompt`.
+- **Images**: Stored in `samples/s{1..30}/{method}/`, named `rgb_{view}.png` plus one `style.png`.
 - **Views**: Fixed at 4 angles [0, 30, 60, 90] degrees
-- **Results**: Submitted to Firestore via `saveToFirestoreData()`. Each document has `timestamp`, `partial`, `isTest`, `email`, `consentGiven`, `consentTimestamp`, and a `results` array whose entries have `presentationOrder`, `questionId`, `prompt`, `style`, `promptId`, `seed`, `methodA`, `methodB`, plus a `criteria` object with 2 fields: `overallQuality` (c1) and `styleAlignment` (c2), valued `A`/`B`/`N`. Older records may still contain the legacy 7-field criteria.
+- **Results**: Submitted via `saveToFirestoreData()`. Assignment audit fields are stored at document and trial level in addition to sample/method metadata and `overallQuality`/`styleAlignment`.
 
 ## Key JavaScript Functions
 
 | Function | Purpose |
 |----------|---------|
-| `generateStudyData()` | Per-question: pick 2 random methods from `ALL_METHODS`. Then shuffle the 20 questions for this session. |
+| `generateStudyData()` | Deterministically assigns 20 pool items and 10 balanced pairs from `p`, randomizes A/B, then shuffles presentation. |
 | `createQuestionPages()` | Dynamically builds the question pages from `studyData.questions` (two criterion blocks side by side + one Next button) |
 | `markCriteriaAnswered()` | Enables the page's Next button once both questions are answered |
 | `goToNext()` | Validates both answers, saves them, navigates to next sample (or submits) |
 | `showStaticPage(id)` | Navigates between the static pages (start / info / consent / instructions / guide) |
-| `startStudy()` | Requires all 9 consent checkboxes ticked, validates the email, runs the duplicate check, registers the participant, then shows the task instructions |
+| `startStudy()` | Validates consent/email, atomically registers production participants and obtains `assignmentIndex`, then shows instructions |
 | `saveToFirestoreData()` | Uploads the JSON result document to Firestore (`partial=true` for mid-study auto-saves) |
 | `savePartialResults()` | Called on `visibilitychange`/`pagehide`; uploads a partial document if any answer exists |
 
@@ -66,7 +67,9 @@ samples/s{question_num}/{method}/rgb_{view}.png
 samples/s{question_num}/{method}/style.png
 ```
 
-- `method`: One of the 6 method folders (5 are in the draw pool)
+- `method`: One of the 5 active method folders
 - `view`: Camera angle (0, 30, 60, 90)
 - `style.png`: Style reference rendering — the one shown is taken from whichever method lands in the `method1` slot
 - `prompt_id` and `seed` are no longer part of the filenames; they live in `samples/questions.js` and are recorded with each result
+
+Test emails bypass the counter. Use `?assignment=0` through `?assignment=29` to inspect any schedule. Mandatory training and four attention checks required by `../ethics.pdf` remain future work; do not recruit before implementing them.
