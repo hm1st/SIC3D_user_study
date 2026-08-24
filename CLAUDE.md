@@ -40,7 +40,7 @@ Page sequence: `startPage` → `infoPage` → `consentPage` → `page0` (task in
 - **Methods**: `SIC3D`, `g-style`, `sgsst`, `styleGS`, and `style_prompt`.
 - **Images**: Stored in `samples/s{1..30}/{method}/`, named `rgb_{view}.png` plus one `style.png`.
 - **Views**: Fixed at 4 angles [0, 30, 60, 90] degrees
-- **Attention checks**: Two prompt-style mismatches, one inconsistent multi-view grid, and one severely degraded grid are placed in separated random windows. Correct sides are randomized but balanced 2A/2B per participant. Both criteria must choose the intact side. More than one failed check makes the record ineligible for analysis.
+- **Attention checks**: Two checks target Overall Object Quality using failed/degraded geometry with style held fixed; two target Style Alignment using the same object and seed with a wrong style. They use four distinct prompt-style examples and are placed in separated random windows. Correct sides are balanced one A/one B within each criterion. Only the designated criterion determines pass/fail. More than one failed check makes the record ineligible for analysis.
 - **Results**: Submitted via `saveToFirestoreData()`. Assignment audit fields are stored at document and trial level in addition to sample/method metadata and `overallQuality`/`styleAlignment`. Attention checks have no method identities and store their ID, correct answer, and pass/fail result.
 
 ## Key JavaScript Functions

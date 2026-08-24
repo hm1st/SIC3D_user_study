@@ -380,13 +380,12 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .attention-degraded .views-grid img {
-            filter: grayscale(1) blur(5px) contrast(0.35);
-            image-rendering: pixelated;
-            opacity: 0.6;
-            transform: scale(0.72);
+            clip-path: polygon(0 0, 62% 0, 42% 48%, 68% 100%, 0 100%);
+            transform: scaleX(0.55) scaleY(1.05) skewY(8deg);
+            transform-origin: center;
         }
         .attention-degraded .views-grid img:hover {
-            transform: scale(0.72);
+            transform: scaleX(0.55) scaleY(1.05) skewY(8deg);
             box-shadow: none;
         }
 
@@ -1212,59 +1211,59 @@
         // and their results are tagged isTest:true so analysis can exclude them.
         const TEST_EMAILS = ['mhe27@sheffield.ac.uk'];
 
-        // Four mixed attention checks approved in the ethics application.
-        // Each uses one intact side and one deliberately unsuitable side; both
-        // criteria have the same predefined answer. They never enter ranking.
+        // Four criterion-specific checks approved in the ethics application:
+        // two target overall quality and two target style alignment. The
+        // non-target response is collected normally but does not determine
+        // whether that attention check passes.
         const ATTENTION_CHECK_DEFINITIONS = [
             {
                 id: 'AC1',
-                type: 'prompt-style-mismatch',
+                type: 'failed-geometry',
+                targetCriterion: 'overallQuality',
                 prompt: 'An elephant',
                 style: 'wave',
                 promptId: 7,
                 seed: 11767,
                 styleSource: { sample: 3, method: 'SIC3D' },
                 valid: { sample: 3, method: 'SIC3D' },
-                invalid: { sample: 29, method: 'SIC3D' }
+                invalidAssetDir: 'oq_elephant_failed'
             },
             {
                 id: 'AC2',
-                type: 'prompt-style-mismatch',
-                prompt: 'A panda',
-                style: 'fire',
-                promptId: 30,
-                seed: 21877,
-                styleSource: { sample: 7, method: 'g-style' },
-                valid: { sample: 7, method: 'g-style' },
-                invalid: { sample: 22, method: 'g-style' }
-            },
-            {
-                id: 'AC3',
-                type: 'multi-view-inconsistency',
+                type: 'geometry-degradation',
+                targetCriterion: 'overallQuality',
                 prompt: 'A lego castle',
                 style: 'northern light',
                 promptId: 99,
                 seed: 9258,
                 styleSource: { sample: 24, method: 'sgsst' },
                 valid: { sample: 24, method: 'sgsst' },
-                invalidViews: [
-                    { sample: 2, method: 'sgsst', view: 0 },
-                    { sample: 9, method: 'sgsst', view: 30 },
-                    { sample: 14, method: 'sgsst', view: 60 },
-                    { sample: 26, method: 'sgsst', view: 90 }
-                ]
+                invalid: { sample: 24, method: 'sgsst' },
+                degradeInvalid: true
             },
             {
-                id: 'AC4',
-                type: 'severe-degradation',
+                id: 'AC3',
+                type: 'style-mismatch',
+                targetCriterion: 'styleAlignment',
                 prompt: 'A mug',
                 style: 'starry night',
                 promptId: 96,
                 seed: 19304,
                 styleSource: { sample: 22, method: 'styleGS' },
                 valid: { sample: 22, method: 'styleGS' },
-                invalid: { sample: 22, method: 'styleGS' },
-                degradeInvalid: true
+                invalidAssetDir: 'sa_mug_mosaic'
+            },
+            {
+                id: 'AC4',
+                type: 'style-mismatch',
+                targetCriterion: 'styleAlignment',
+                prompt: 'A panda',
+                style: 'fire',
+                promptId: 30,
+                seed: 21877,
+                styleSource: { sample: 7, method: 'g-style' },
+                valid: { sample: 7, method: 'g-style' },
+                invalidAssetDir: 'sa_panda_mosaic'
             }
         ];
 
@@ -1293,11 +1292,16 @@
             return FIXED_VIEWS.map(view => assetPath(side.sample, side.method, `rgb_${view}.png`));
         }
 
+        function attentionViews(directory) {
+            return FIXED_VIEWS.map(view =>
+                `attention_checks/${directory}/rgb_${view}.png?v=${ASSET_VERSION}`
+            );
+        }
+
         function createAttentionCheck(definition, correctSide) {
             const validViews = sideViews(definition.valid);
-            const invalidViews = definition.invalidViews
-                ? definition.invalidViews.map(item =>
-                    assetPath(item.sample, item.method, `rgb_${item.view}.png`))
+            const invalidViews = definition.invalidAssetDir
+                ? attentionViews(definition.invalidAssetDir)
                 : sideViews(definition.invalid);
             const validOnLeft = correctSide === 'left';
             return {
@@ -1322,6 +1326,7 @@
                 isAttentionCheck: true,
                 attentionCheckId: definition.id,
                 attentionCheckType: definition.type,
+                attentionCheckTarget: definition.targetCriterion,
                 correctSide: correctSide,
                 degradedSide: definition.degradeInvalid
                     ? (validOnLeft ? 'right' : 'left')
@@ -1363,10 +1368,15 @@
             shuffle(mainQuestions);
 
             // Place one shuffled check in each separated presentation window.
-            const correctSides = shuffle(['left', 'left', 'right', 'right']);
+            const sidesByCriterion = {
+                overallQuality: shuffle(['left', 'right']),
+                styleAlignment: shuffle(['left', 'right'])
+            };
             const attentionChecks = shuffle([...ATTENTION_CHECK_DEFINITIONS]).map(
-                (definition, index) =>
-                    createAttentionCheck(definition, correctSides[index])
+                definition => createAttentionCheck(
+                    definition,
+                    sidesByCriterion[definition.targetCriterion].pop()
+                )
             );
             const windows = [[2, 4], [8, 10], [14, 16], [20, 22]];
             const attentionSlots = new Set(windows.map(([start, end]) =>
@@ -1605,20 +1615,18 @@
                 };
                 if (q.isAttentionCheck) {
                     const correctAnswer = q.correctSide === 'left' ? 'A' : 'B';
-                    const completed = Boolean(
-                        criteria.overallQuality && criteria.styleAlignment
-                    );
+                    const targetAnswer = criteria[q.attentionCheckTarget];
+                    const completed = Boolean(targetAnswer);
                     return {
                         presentationOrder: idx + 1,
                         isAttentionCheck: true,
                         attentionCheckId: q.attentionCheckId,
                         attentionCheckType: q.attentionCheckType,
+                        targetCriterion: q.attentionCheckTarget,
                         prompt: q.prompt,
                         style: q.style,
                         correctAnswer: correctAnswer,
-                        passed: completed &&
-                            criteria.overallQuality === correctAnswer &&
-                            criteria.styleAlignment === correctAnswer,
+                        passed: completed && targetAnswer === correctAnswer,
                         criteria: criteria
                     };
                 }
@@ -1640,12 +1648,25 @@
             });
             const completedAttentionChecks = resultRecords.filter(result =>
                 result.isAttentionCheck &&
-                result.criteria.overallQuality &&
-                result.criteria.styleAlignment
+                result.criteria[result.targetCriterion]
             );
             const failedAttentionChecks = completedAttentionChecks.filter(
                 result => !result.passed
             ).length;
+            const criterionSummary = {};
+            CRITERIA_INFO.forEach(criterion => {
+                const key = criterion.id === 1 ? 'overallQuality' : 'styleAlignment';
+                const records = completedAttentionChecks.filter(
+                    result => result.targetCriterion === key
+                );
+                criterionSummary[key] = {
+                    total: ATTENTION_CHECK_DEFINITIONS.filter(
+                        definition => definition.targetCriterion === key
+                    ).length,
+                    completed: records.length,
+                    failed: records.filter(result => !result.passed).length
+                };
+            });
 
             const jsonData = {
                 timestamp: timestamp,
@@ -1667,6 +1688,7 @@
                     total: NUM_ATTENTION_CHECKS,
                     completed: completedAttentionChecks.length,
                     failed: failedAttentionChecks,
+                    byCriterion: criterionSummary,
                     eligibleForAnalysis: completedAttentionChecks.length === NUM_ATTENTION_CHECKS &&
                         failedAttentionChecks <= 1
                 },

@@ -34,12 +34,16 @@ shuffled; A/B placement is randomized independently per trial.
 
 ## Attention Checks
 
-Four checks are added after the 20 main trials are assigned: two prompt-style
-mismatches, one inconsistent multi-view grid, and one severely degraded grid.
+Four checks are added after the 20 main trials are assigned. Two target Overall
+Object Quality using failed or severely degraded geometry while holding the
+style condition fixed. Two target Style Alignment using the same object and
+seed rendered with a deliberately incorrect style.
 One check is placed randomly within each of four separated presentation
 windows. The intact side is randomized with exactly two correct-A and two
-correct-B checks per participant. Both criteria must select the intact side
-for the check to pass. A participant who
+correct-B checks per participant, with one A and one B correct answer for each
+criterion. Only the designated target criterion determines whether a check
+passes; the other response is retained but ignored for attention scoring. A
+participant who
 fails more than one check is excluded from analysis, following the ethics
 application. Checks carry an attention-check flag, have no method identities,
 and never enter method rankings.
@@ -83,7 +87,8 @@ stale JSON object text.
 Each result stores `assignmentIndex`, the design constants, and per-trial
 `poolIndex`, `assignmentTrial`, `methodPairIndex`, presentation order,
 sample metadata, actual A/B methods, and the two responses. Attention-check
-records store their check ID, type, correct side, and pass/fail status; the
+records store their check ID, type, target criterion, correct side, and
+pass/fail status; the
 document stores an `attentionCheckSummary`. Partial documents are written
 when a participant leaves after answering at least one item.
 
