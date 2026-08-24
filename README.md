@@ -7,7 +7,8 @@ stylised text-to-3D methods on Overall Object Quality and Style Alignment.
 
 Open `index.html` in a modern browser. A participant reads the information
 sheet, accepts all consent statements, enters an email address, reads the task
-guide, evaluates 20 assigned samples, and submits to Firestore.
+guide, evaluates 20 assigned samples plus 4 interleaved attention checks, and
+submits to Firestore.
 
 For local testing, use the test email in `TEST_EMAILS`. Add
 `?assignment=0` through `?assignment=29` to the URL to inspect a particular
@@ -30,6 +31,21 @@ by `ALL_METHODS`. Consequently, every participant evaluates each method pair
 twice. Across 30 consecutive assignment indices, every sample × method-pair
 cell is observed exactly twice. Pair assignment happens before trial order is
 shuffled; A/B placement is randomized independently per trial.
+
+## Attention Checks
+
+Four checks are added after the 20 main trials are assigned: two prompt-style
+mismatches, one inconsistent multi-view grid, and one severely degraded grid.
+One check is placed randomly within each of four separated presentation
+windows. The intact side is randomized with exactly two correct-A and two
+correct-B checks per participant. Both criteria must select the intact side
+for the check to pass. A participant who
+fails more than one check is excluded from analysis, following the ethics
+application. Checks carry an attention-check flag, have no method identities,
+and never enter method rankings.
+
+The analysis script also excludes legacy records without an attention-check
+summary by default because their eligibility cannot be established.
 
 ## File Structure
 
@@ -66,8 +82,10 @@ stale JSON object text.
 
 Each result stores `assignmentIndex`, the design constants, and per-trial
 `poolIndex`, `assignmentTrial`, `methodPairIndex`, presentation order,
-sample metadata, actual A/B methods, and the two responses. Partial documents
-are written when a participant leaves after answering at least one item.
+sample metadata, actual A/B methods, and the two responses. Attention-check
+records store their check ID, type, correct side, and pass/fail status; the
+document stores an `attentionCheckSummary`. Partial documents are written
+when a participant leaves after answering at least one item.
 
-Attention checks and mandatory training are not yet implemented; they must be
-completed before recruitment, as required by `../ethics.pdf`.
+Mandatory training is not yet implemented and must be completed before
+recruitment, as required by `../ethics.pdf`.

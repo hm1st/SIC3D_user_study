@@ -379,6 +379,16 @@
             transform: scale(1.02);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+        .attention-degraded .views-grid img {
+            filter: grayscale(1) blur(5px) contrast(0.35);
+            image-rendering: pixelated;
+            opacity: 0.6;
+            transform: scale(0.72);
+        }
+        .attention-degraded .views-grid img:hover {
+            transform: scale(0.72);
+            box-shadow: none;
+        }
 
         .criteria-table {
             width: 100%;
@@ -851,10 +861,10 @@
             <p>Thank you for your interest in this study. You are invited to take part in a short online questionnaire evaluating computer-generated 3D objects.</p>
             <p>In this study you will:</p>
             <ul>
-                <li>Compare <strong>20 pairs</strong> of 3D-generated objects (Method A vs Method B), each shown from four viewpoints alongside a text prompt and a style reference image.</li>
+                <li>Compare <strong>20 evaluation pairs</strong> of 3D-generated objects (Method A vs Method B), plus 4 brief quality-control comparisons, each shown from four viewpoints alongside a text prompt and a style reference image.</li>
                 <li>Answer <strong>2 questions</strong> per pair: overall object quality and style alignment.</li>
             </ul>
-            <p style="margin-top: 14px;">The whole process takes approximately <strong>10&ndash;15 minutes</strong>. There is a single session with no follow-up required.</p>
+            <p style="margin-top: 14px;">The whole process takes approximately <strong>15&ndash;20 minutes</strong>. There is a single session with no follow-up required.</p>
             <p>Before you begin, you will be asked to read the participant information details and complete a consent form. This project has been ethically approved via the University of Sheffield's Ethics Review Procedure.</p>
         </div>
 
@@ -886,7 +896,7 @@
             <p>Taking part in this research is voluntary and will not create a legally binding agreement or any form of employment with the University of Sheffield.</p>
 
             <h3>4. What will happen to me if I take part? What do I have to do?</h3>
-            <p>You will be asked to complete an online questionnaire via a study website. The study involves a single session with no follow-up required. You will evaluate 20 samples assigned from a balanced pool of 30. Each sample asks you to compare two 3D-generated objects (Method A and Method B). For each sample you will be shown:</p>
+            <p>You will be asked to complete an online questionnaire via a study website. The study involves a single session with no follow-up required. You will evaluate 20 samples assigned from a balanced pool of 30, together with 4 brief quality-control comparisons. Each sample asks you to compare two 3D-generated objects (Method A and Method B). For each sample you will be shown:</p>
             <ul>
                 <li>A text prompt that was used to generate the object (e.g. "An ancient Egyptian pyramid").</li>
                 <li>A style reference image (e.g. a photograph of fire or a painting).</li>
@@ -898,7 +908,7 @@
                 <li><strong>Style Alignment</strong> &mdash; which object better reflects the colour palette and visual style of the reference image.</li>
             </ul>
             <p>All images shown are computer-generated renderings of everyday objects (e.g. a hat, a handbag, a pyramid) with artistic styles applied. The images do not contain any inappropriate or dangerous content.</p>
-            <p>The whole process takes approximately 10-15 minutes.</p>
+            <p>The whole process takes approximately 15-20 minutes.</p>
 
             <h3>5. What are the possible disadvantages and risks of taking part?</h3>
             <p>There are no anticipated risks or disadvantages. If at any point you decide you do not want to continue, you are free to stop but your previous responses will be included in the collected dataset.</p>
@@ -1184,9 +1194,11 @@
         const QUESTION_DATA = window.QUESTION_DATA;
         const POOL_SIZE = QUESTION_DATA.length;
         const NUM_QUESTIONS = 20;
+        const NUM_ATTENTION_CHECKS = 4;
+        const TOTAL_TRIALS = NUM_QUESTIONS + NUM_ATTENTION_CHECKS;
         const SAMPLE_STRIDE = 2;
         const FIXED_VIEWS = [0, 30, 60, 90];
-        const ASSET_VERSION = '20260821-seed-fix';
+        const ASSET_VERSION = '20260824-attention-checks';
 
         const ALL_METHODS = ['SIC3D', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
         const METHOD_PAIRS = [];
@@ -1199,6 +1211,62 @@
         // Test emails bypass the duplicate check (can re-take), are not registered,
         // and their results are tagged isTest:true so analysis can exclude them.
         const TEST_EMAILS = ['mhe27@sheffield.ac.uk'];
+
+        // Four mixed attention checks approved in the ethics application.
+        // Each uses one intact side and one deliberately unsuitable side; both
+        // criteria have the same predefined answer. They never enter ranking.
+        const ATTENTION_CHECK_DEFINITIONS = [
+            {
+                id: 'AC1',
+                type: 'prompt-style-mismatch',
+                prompt: 'An elephant',
+                style: 'wave',
+                promptId: 7,
+                seed: 11767,
+                styleSource: { sample: 3, method: 'SIC3D' },
+                valid: { sample: 3, method: 'SIC3D' },
+                invalid: { sample: 29, method: 'SIC3D' }
+            },
+            {
+                id: 'AC2',
+                type: 'prompt-style-mismatch',
+                prompt: 'A panda',
+                style: 'fire',
+                promptId: 30,
+                seed: 21877,
+                styleSource: { sample: 7, method: 'g-style' },
+                valid: { sample: 7, method: 'g-style' },
+                invalid: { sample: 22, method: 'g-style' }
+            },
+            {
+                id: 'AC3',
+                type: 'multi-view-inconsistency',
+                prompt: 'A lego castle',
+                style: 'northern light',
+                promptId: 99,
+                seed: 9258,
+                styleSource: { sample: 24, method: 'sgsst' },
+                valid: { sample: 24, method: 'sgsst' },
+                invalidViews: [
+                    { sample: 2, method: 'sgsst', view: 0 },
+                    { sample: 9, method: 'sgsst', view: 30 },
+                    { sample: 14, method: 'sgsst', view: 60 },
+                    { sample: 26, method: 'sgsst', view: 90 }
+                ]
+            },
+            {
+                id: 'AC4',
+                type: 'severe-degradation',
+                prompt: 'A mug',
+                style: 'starry night',
+                promptId: 96,
+                seed: 19304,
+                styleSource: { sample: 22, method: 'styleGS' },
+                valid: { sample: 22, method: 'styleGS' },
+                invalid: { sample: 22, method: 'styleGS' },
+                degradeInvalid: true
+            }
+        ];
 
         let studyData = {
             questions: [],
@@ -1217,6 +1285,50 @@
             return array;
         }
 
+        function assetPath(sample, method, filename) {
+            return `samples/s${sample}/${method}/${filename}?v=${ASSET_VERSION}`;
+        }
+
+        function sideViews(side) {
+            return FIXED_VIEWS.map(view => assetPath(side.sample, side.method, `rgb_${view}.png`));
+        }
+
+        function createAttentionCheck(definition, correctSide) {
+            const validViews = sideViews(definition.valid);
+            const invalidViews = definition.invalidViews
+                ? definition.invalidViews.map(item =>
+                    assetPath(item.sample, item.method, `rgb_${item.view}.png`))
+                : sideViews(definition.invalid);
+            const validOnLeft = correctSide === 'left';
+            return {
+                questionNum: definition.id,
+                prompt_id: definition.promptId,
+                seed: definition.seed,
+                prompt: definition.prompt,
+                style: definition.style,
+                method1: null,
+                method2: null,
+                poolIndex: null,
+                assignmentTrial: null,
+                methodPairIndex: null,
+                views: FIXED_VIEWS,
+                viewPathsA: validOnLeft ? validViews : invalidViews,
+                viewPathsB: validOnLeft ? invalidViews : validViews,
+                styleImgPath: assetPath(
+                    definition.styleSource.sample,
+                    definition.styleSource.method,
+                    'style.png'
+                ),
+                isAttentionCheck: true,
+                attentionCheckId: definition.id,
+                attentionCheckType: definition.type,
+                correctSide: correctSide,
+                degradedSide: definition.degradeInvalid
+                    ? (validOnLeft ? 'right' : 'left')
+                    : null
+            };
+        }
+
         function generateStudyData() {
             if (POOL_SIZE !== 30 || METHOD_PAIRS.length !== 10) {
                 throw new Error(`Invalid study design: pool=${POOL_SIZE}, pairs=${METHOD_PAIRS.length}`);
@@ -1226,7 +1338,7 @@
             }
 
             const p = studyData.assignmentIndex;
-            studyData.questions = Array.from({ length: NUM_QUESTIONS }, (_, t) => {
+            const mainQuestions = Array.from({ length: NUM_QUESTIONS }, (_, t) => {
                 const poolIndex = (p * SAMPLE_STRIDE + t) % POOL_SIZE;
                 const pairIndex = (t + p) % METHOD_PAIRS.length;
                 const q = QUESTION_DATA[poolIndex];
@@ -1243,11 +1355,31 @@
                     poolIndex: poolIndex,
                     assignmentTrial: t + 1,
                     methodPairIndex: pairIndex,
-                    views: FIXED_VIEWS
+                    views: FIXED_VIEWS,
+                    isAttentionCheck: false
                 };
             });
-            // Assign samples and pairs first, then randomize presentation order.
-            shuffle(studyData.questions);
+            // Assign the 20 main trials first, then randomize their order.
+            shuffle(mainQuestions);
+
+            // Place one shuffled check in each separated presentation window.
+            const correctSides = shuffle(['left', 'left', 'right', 'right']);
+            const attentionChecks = shuffle([...ATTENTION_CHECK_DEFINITIONS]).map(
+                (definition, index) =>
+                    createAttentionCheck(definition, correctSides[index])
+            );
+            const windows = [[2, 4], [8, 10], [14, 16], [20, 22]];
+            const attentionSlots = new Set(windows.map(([start, end]) =>
+                start + Math.floor(Math.random() * (end - start + 1))
+            ));
+            studyData.questions = [];
+            let mainIndex = 0;
+            let attentionIndex = 0;
+            for (let position = 0; position < TOTAL_TRIALS; position++) {
+                studyData.questions.push(attentionSlots.has(position)
+                    ? attentionChecks[attentionIndex++]
+                    : mainQuestions[mainIndex++]);
+            }
         }
 
         const CRITERIA_INFO = [
@@ -1272,17 +1404,20 @@
                 page.className = 'page';
                 page.id = `questionPage${idx}`;
 
-                let methodAViewsHTML = '';
-                q.views.forEach(view => {
-                    methodAViewsHTML += `<img src="samples/s${q.questionNum}/${q.method1}/rgb_${view}.png?v=${ASSET_VERSION}" alt="View ${view}">`;
-                });
-
-                let methodBViewsHTML = '';
-                q.views.forEach(view => {
-                    methodBViewsHTML += `<img src="samples/s${q.questionNum}/${q.method2}/rgb_${view}.png?v=${ASSET_VERSION}" alt="View ${view}">`;
-                });
-
-                const styleImgPath = `samples/s${q.questionNum}/${q.method1}/style.png?v=${ASSET_VERSION}`;
+                const methodAPaths = q.viewPathsA ||
+                    q.views.map(view => assetPath(q.questionNum, q.method1, `rgb_${view}.png`));
+                const methodBPaths = q.viewPathsB ||
+                    q.views.map(view => assetPath(q.questionNum, q.method2, `rgb_${view}.png`));
+                const methodAViewsHTML = methodAPaths.map((path, viewIndex) =>
+                    `<img src="${path}" alt="View ${q.views[viewIndex]}">`
+                ).join('');
+                const methodBViewsHTML = methodBPaths.map((path, viewIndex) =>
+                    `<img src="${path}" alt="View ${q.views[viewIndex]}">`
+                ).join('');
+                const styleImgPath = q.styleImgPath ||
+                    assetPath(q.questionNum, q.method1, 'style.png');
+                const methodAClass = q.degradedSide === 'left' ? ' attention-degraded' : '';
+                const methodBClass = q.degradedSide === 'right' ? ' attention-degraded' : '';
 
                 // 创建两个并排的 criterion 块
                 let criteriaBlocks = '<div class="criteria-blocks">';
@@ -1312,7 +1447,7 @@
                 });
                 criteriaBlocks += '</div>';
 
-                const nextLabel = (idx === NUM_QUESTIONS - 1) ? 'Submit' : 'Next Sample';
+                const nextLabel = (idx === TOTAL_TRIALS - 1) ? 'Submit' : 'Next Sample';
                 const nextArea = `
                     <div class="page-next">
                         <button class="btn next-btn" onclick="goToNext(${idx})" id="nextBtn${idx}" disabled>${nextLabel}</button>
@@ -1331,11 +1466,11 @@
                     </div>
                     <div class="question">
                         <!-- <div class="question-header">
-                            <span class="question-number">Sample ${idx + 1} of ${NUM_QUESTIONS}</span>
-                            <span class="progress">${idx + 1} / ${NUM_QUESTIONS}</span>
+                            <span class="question-number">Sample ${idx + 1} of ${TOTAL_TRIALS}</span>
+                            <span class="progress">${idx + 1} / ${TOTAL_TRIALS}</span>
                         </div> -->
 
-                        <span class="question-number">Sample ${idx + 1} of ${NUM_QUESTIONS}</span>
+                        <span class="question-number">Sample ${idx + 1} of ${TOTAL_TRIALS}</span>
 
                         <div class="question-content">
                             <div class="left-column">
@@ -1347,11 +1482,11 @@
                             </div>
                             <div class="right-column">
                                 <div class="image-section">
-                                    <div class="image-group">
+                                    <div class="image-group${methodAClass}">
                                         <div class="method-label"><span class="method-label-left">Method A</span></div>
                                         <div class="views-grid">${methodAViewsHTML}</div>
                                     </div>
-                                    <div class="image-group">
+                                    <div class="image-group${methodBClass}">
                                         <div class="method-label"><span class="method-label-right">Method B</span></div>
                                         <div class="views-grid">${methodBViewsHTML}</div>
                                     </div>
@@ -1421,7 +1556,7 @@
             saveAnswers(questionIdx);
 
             // 最后一个 sample，提交
-            if (questionIdx === NUM_QUESTIONS - 1) {
+            if (questionIdx === TOTAL_TRIALS - 1) {
                 finishStudy(questionIdx);
                 return;
             }
@@ -1463,6 +1598,55 @@
                 return val || '';
             }
 
+            const resultRecords = studyData.questions.map((q, idx) => {
+                const criteria = {
+                    overallQuality: convertValue(studyData.results[`q${idx + 1}_c1`]),
+                    styleAlignment: convertValue(studyData.results[`q${idx + 1}_c2`])
+                };
+                if (q.isAttentionCheck) {
+                    const correctAnswer = q.correctSide === 'left' ? 'A' : 'B';
+                    const completed = Boolean(
+                        criteria.overallQuality && criteria.styleAlignment
+                    );
+                    return {
+                        presentationOrder: idx + 1,
+                        isAttentionCheck: true,
+                        attentionCheckId: q.attentionCheckId,
+                        attentionCheckType: q.attentionCheckType,
+                        prompt: q.prompt,
+                        style: q.style,
+                        correctAnswer: correctAnswer,
+                        passed: completed &&
+                            criteria.overallQuality === correctAnswer &&
+                            criteria.styleAlignment === correctAnswer,
+                        criteria: criteria
+                    };
+                }
+                return {
+                    presentationOrder: idx + 1,
+                    isAttentionCheck: false,
+                    assignmentTrial: q.assignmentTrial,
+                    poolIndex: q.poolIndex,
+                    methodPairIndex: q.methodPairIndex,
+                    questionId: q.questionNum,
+                    prompt: q.prompt,
+                    style: q.style,
+                    promptId: q.prompt_id,
+                    seed: q.seed,
+                    methodA: q.method1,
+                    methodB: q.method2,
+                    criteria: criteria
+                };
+            });
+            const completedAttentionChecks = resultRecords.filter(result =>
+                result.isAttentionCheck &&
+                result.criteria.overallQuality &&
+                result.criteria.styleAlignment
+            );
+            const failedAttentionChecks = completedAttentionChecks.filter(
+                result => !result.passed
+            ).length;
+
             const jsonData = {
                 timestamp: timestamp,
                 partial: partial,
@@ -1474,26 +1658,19 @@
                 assignmentDesign: {
                     poolSize: POOL_SIZE,
                     samplesPerParticipant: NUM_QUESTIONS,
+                    attentionChecksPerParticipant: NUM_ATTENTION_CHECKS,
+                    totalTrials: TOTAL_TRIALS,
                     sampleStride: SAMPLE_STRIDE,
                     methodPairCount: METHOD_PAIRS.length
                 },
-                results: studyData.questions.map((q, idx) => ({
-                    presentationOrder: idx + 1,
-                    assignmentTrial: q.assignmentTrial,
-                    poolIndex: q.poolIndex,
-                    methodPairIndex: q.methodPairIndex,
-                    questionId: q.questionNum,
-                    prompt: q.prompt,
-                    style: q.style,
-                    promptId: q.prompt_id,
-                    seed: q.seed,
-                    methodA: q.method1,
-                    methodB: q.method2,
-                    criteria: {
-                        overallQuality: convertValue(studyData.results[`q${idx + 1}_c1`]),
-                        styleAlignment: convertValue(studyData.results[`q${idx + 1}_c2`])
-                    }
-                }))
+                attentionCheckSummary: {
+                    total: NUM_ATTENTION_CHECKS,
+                    completed: completedAttentionChecks.length,
+                    failed: failedAttentionChecks,
+                    eligibleForAnalysis: completedAttentionChecks.length === NUM_ATTENTION_CHECKS &&
+                        failedAttentionChecks <= 1
+                },
+                results: resultRecords
             };
 
             // 调用全局函数
