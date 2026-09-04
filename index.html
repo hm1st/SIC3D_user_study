@@ -812,59 +812,17 @@
             line-height: 1.6;
             margin-bottom: 16px;
         }
-        .training-options {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 12px;
-        }
-        .training-choice {
-            background: white;
-            border: 2px solid #dee2e6;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            min-width: 180px;
-            padding: 10px 18px;
-        }
-        .training-choice:hover:not(:disabled) {
-            border-color: #667eea;
-        }
-        .training-choice.correct {
-            background: #e9f8ee;
+        .training-good .views-grid img {
             border-color: #28a745;
-            color: #1e7e34;
         }
-        .training-choice.incorrect {
-            background: #fcebec;
-            border-color: #dc3545;
-            color: #bd2130;
-        }
-        .training-choice:disabled {
-            cursor: default;
-            opacity: 0.75;
-        }
-        .training-feedback {
+        .training-answer {
+            background: #e9f8ee;
+            border-left: 4px solid #28a745;
             border-radius: 8px;
-            display: none;
+            color: #1e7e34;
             line-height: 1.55;
             margin-top: 14px;
             padding: 12px 15px;
-        }
-        .training-feedback.correct {
-            background: #e9f8ee;
-            color: #1e7e34;
-            display: block;
-        }
-        .training-feedback.incorrect {
-            background: #fcebec;
-            color: #bd2130;
-            display: block;
-        }
-        .training-status {
-            color: #666;
-            margin-top: 10px;
         }
 
         /* 响应式布局 */
@@ -920,12 +878,6 @@
             .criteria-grid {
                 grid-template-columns: 1fr;
             }
-            .training-options {
-                flex-direction: column;
-            }
-            .training-choice {
-                width: 100%;
-            }
         }
 
         @media (max-width: 480px) {
@@ -950,7 +902,7 @@
             <p>Thank you for your interest in this study. You are invited to take part in a short online questionnaire evaluating computer-generated 3D objects.</p>
             <p>In this study you will:</p>
             <ul>
-                <li>Complete <strong>2 short practice examples</strong> with feedback before the evaluation.</li>
+                <li>Review <strong>2 worked examples</strong> with explanations before the evaluation.</li>
                 <li>Compare <strong>24 evaluation pairs</strong> of 3D-generated objects (Method A vs Method B), including 4 brief quality-control comparisons. Each pair is shown from four viewpoints alongside a text prompt and a style reference image.</li>
                 <li>Answer <strong>2 questions</strong> per pair: overall object quality and style alignment.</li>
             </ul>
@@ -1264,8 +1216,8 @@
 
         <section class="training-section" aria-labelledby="training-title">
             <div class="training-intro">
-                <h2 id="training-title">Practice Examples</h2>
-                <p>Complete both examples before starting the evaluation. Each example focuses on one criterion only. You will receive immediate feedback and may try again if needed.</p>
+                <h2 id="training-title">Worked Examples</h2>
+                <p>Review these two examples before starting the evaluation. Each example identifies the better method for one criterion and explains why.</p>
             </div>
 
             <div class="training-card" id="trainingObjectQuality">
@@ -1290,7 +1242,7 @@
                                     <img src="training_examples/object_quality_good/rgb_90.png?v=20260904-training" alt="Method A view 90">
                                 </div>
                             </div>
-                            <div class="image-group">
+                            <div class="image-group training-good">
                                 <div class="method-label"><span class="method-label-right">Method B</span></div>
                                 <div class="views-grid">
                                     <img src="training_examples/object_quality_good/rgb_0.png?v=20260904-training" alt="Method B view 0">
@@ -1302,11 +1254,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="training-options">
-                    <button class="training-choice" type="button" onclick="answerTraining('objectQuality', 'left')">Method A is better</button>
-                    <button class="training-choice" type="button" onclick="answerTraining('objectQuality', 'right')">Method B is better</button>
+                <div class="training-answer">
+                    <strong>Answer: Method B is better.</strong> Method B preserves the cat's natural proportions and coherent geometry. Method A is visibly compressed and incomplete, so it has lower overall object quality.
                 </div>
-                <div class="training-feedback" id="objectQualityFeedback" role="status" aria-live="polite"></div>
             </div>
 
             <div class="training-card" id="trainingStyleAlignment">
@@ -1322,7 +1272,7 @@
                     </div>
                     <div class="right-column">
                         <div class="image-section">
-                            <div class="image-group">
+                            <div class="image-group training-good">
                                 <div class="method-label"><span class="method-label-left">Method A</span></div>
                                 <div class="views-grid">
                                     <img src="training_examples/style_alignment_vangogh/rgb_0.png?v=20260904-training" alt="Method A view 0">
@@ -1343,17 +1293,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="training-options">
-                    <button class="training-choice" type="button" onclick="answerTraining('styleAlignment', 'left')">Method A is better</button>
-                    <button class="training-choice" type="button" onclick="answerTraining('styleAlignment', 'right')">Method B is better</button>
+                <div class="training-answer">
+                    <strong>Answer: Method A is better.</strong> Method A is closer to the Van Gogh reference in its blue-and-yellow palette and painterly appearance. Method B uses a fire-like red and orange style.
                 </div>
-                <div class="training-feedback" id="styleAlignmentFeedback" role="status" aria-live="polite"></div>
             </div>
         </section>
 
         <div style="text-align: center; margin-top: 25px;">
-            <button class="btn" id="startEvaluationBtn" onclick="startSampleStudy()" style="padding: 15px 50px; font-size: 1.1em;" disabled>Start Evaluation</button>
-            <p class="training-status" id="trainingStatus">Answer both practice examples correctly to continue.</p>
+            <button class="btn" onclick="startSampleStudy()" style="padding: 15px 50px; font-size: 1.1em;">Start Evaluation</button>
         </div>
     </div>
 
@@ -1379,23 +1326,6 @@
         const SAMPLE_STRIDE = 2;
         const FIXED_VIEWS = [0, 30, 60, 90];
         const ASSET_VERSION = '20260824-attention-checks';
-        const completedTraining = new Set();
-        const TRAINING_ANSWERS = {
-            objectQuality: {
-                correctSide: 'right',
-                feedbackId: 'objectQualityFeedback',
-                cardId: 'trainingObjectQuality',
-                correctMessage: 'Correct. Method B preserves the cat\'s natural proportions and coherent geometry. Method A is visibly compressed and incomplete, so it has lower overall object quality.',
-                incorrectMessage: 'Not quite. Method A is visibly compressed and has missing or distorted geometry. Method B is the better overall-quality object. Please try again.'
-            },
-            styleAlignment: {
-                correctSide: 'left',
-                feedbackId: 'styleAlignmentFeedback',
-                cardId: 'trainingStyleAlignment',
-                correctMessage: 'Correct. Method A is closer to the Van Gogh reference in its blue-and-yellow palette and painterly appearance. Method B uses a fire-like red and orange style.',
-                incorrectMessage: 'Not quite. The reference uses a Van Gogh-like blue-and-yellow palette. Method A matches it more closely; Method B has a fire-like red and orange style. Please try again.'
-            }
-        };
 
         const ALL_METHODS = ['SIC3D', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
         const METHOD_PAIRS = [];
@@ -1971,34 +1901,7 @@
             showStaticPage('page0');
         }
 
-        function answerTraining(exampleId, selectedSide) {
-            const training = TRAINING_ANSWERS[exampleId];
-            const feedback = document.getElementById(training.feedbackId);
-            const card = document.getElementById(training.cardId);
-            const buttons = card.querySelectorAll('.training-choice');
-            const selectedIndex = selectedSide === 'left' ? 0 : 1;
-            const isCorrect = selectedSide === training.correctSide;
-
-            buttons.forEach(button => button.classList.remove('correct', 'incorrect'));
-            buttons[selectedIndex].classList.add(isCorrect ? 'correct' : 'incorrect');
-            feedback.className = `training-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
-            feedback.textContent = isCorrect ? training.correctMessage : training.incorrectMessage;
-
-            if (!isCorrect) return;
-
-            completedTraining.add(exampleId);
-            buttons.forEach(button => { button.disabled = true; });
-            if (completedTraining.size === Object.keys(TRAINING_ANSWERS).length) {
-                document.getElementById('startEvaluationBtn').disabled = false;
-                document.getElementById('trainingStatus').textContent = 'Training complete. You may now start the evaluation.';
-            }
-        }
-
         function startSampleStudy() {
-            if (completedTraining.size !== Object.keys(TRAINING_ANSWERS).length) {
-                document.getElementById('trainingStatus').textContent = 'Please answer both practice examples correctly before continuing.';
-                return;
-            }
             // 从 guide 页面点击开始后，生成问题页面
             generateStudyData();
             createQuestionPages();

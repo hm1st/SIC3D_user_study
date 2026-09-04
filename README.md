@@ -92,8 +92,8 @@ pass/fail status; the
 document stores an `attentionCheckSummary`. Partial documents are written
 when a participant leaves after answering at least one item.
 
-The Sample Page Guide includes the mandatory training required by
-`../ethics.pdf`: one Overall Object Quality example and one Style Alignment
-example. Each gives immediate feedback, allows retries, and must be answered
-correctly before the main evaluation starts. Training responses are not saved
-or included in scoring. Its dedicated assets are under `training_examples/`.
+The Sample Page Guide includes two worked examples: one for Overall Object
+Quality and one for Style Alignment. Each directly identifies the better side
+and explains the judgement; participants do not answer these examples. Their
+dedicated assets are under `training_examples/`. This differs from the
+answer-and-retry mandatory training described in `../ethics.pdf`.
