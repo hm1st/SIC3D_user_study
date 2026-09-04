@@ -23,7 +23,7 @@ xdg-open index.html
 
 ## Workflow
 
-Page sequence: `startPage` → `infoPage` → `consentPage` → `page0` (task instructions) → `sampleGuidePage` → question pages → `finalPage`. Static pages navigate via `showStaticPage(id)`.
+Page sequence: `startPage` → `infoPage` → `consentPage` → `page0` (task instructions) → `sampleGuidePage` (guide plus mandatory training) → question pages → `finalPage`. Static pages navigate via `showStaticPage(id)`.
 
 1. User opens `index.html` in a browser and lands on a welcome page (`startPage`), then reads the "Participant Information Details" page (`infoPage`, content from `../SIC3D_Information_Sheet.docx`).
 2. On the "Participant Consent Details" page (`consentPage`, content from `../SIC3D_consent_form.docx`) the user must tick all 9 consent checkboxes AND enter their email address before the study starts. A highlighted "I agree to all" checkbox (`#consent-check-all`, not counted in the 9) ticks/unticks all of them and stays in sync with the individual boxes. The email is checked against the Firestore `participants` collection — an email that already participated is rejected. Emails in `TEST_EMAILS` bypass the check, are not registered, and their results carry `isTest: true`. The consent time is recorded as `consentTimestamp`.
@@ -73,4 +73,4 @@ samples/s{question_num}/{method}/style.png
 - `style.png`: Style reference rendering — the one shown is taken from whichever method lands in the `method1` slot
 - `prompt_id` and `seed` are no longer part of the filenames; they live in `samples/questions.js` and are recorded with each result
 
-Test emails bypass the counter. Use `?assignment=0` through `?assignment=29` to inspect any schedule. The four attention checks required by `../ethics.pdf` are implemented. Mandatory training remains future work; do not recruit before implementing it.
+Test emails bypass the counter. Use `?assignment=0` through `?assignment=29` to inspect any schedule. The four attention checks required by `../ethics.pdf` are implemented. The Sample Page Guide also contains two criterion-specific mandatory training examples with immediate feedback and retry-until-correct gating; their assets live in `training_examples/` and their answers are not saved.
