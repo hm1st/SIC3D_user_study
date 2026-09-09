@@ -38,8 +38,8 @@ Four checks are added after the 20 main trials are assigned. Two target Overall
 Object Quality using failed or severely degraded geometry while holding the
 style condition fixed. Two target Style Alignment using the same object and
 seed rendered with a deliberately incorrect style.
-One check is placed randomly within each of four separated presentation
-windows. The intact side is randomized with exactly two correct-A and two
+AC1, AC2, AC3, and AC4 appear in fixed order at trials 4, 10, 16, and 22
+of the 24-trial questionnaire. The intact side is randomized with exactly two correct-A and two
 correct-B checks per participant, with one A and one B correct answer for each
 criterion. Only the designated target criterion determines whether a check
 passes; the other response is retained but ignored for attention scoring. A

@@ -1222,52 +1222,52 @@
 
             <div class="training-card" id="trainingObjectQuality">
                 <h2>Example 1: Overall Object Quality</h2>
-                <p class="training-focus">Which object is better overall? Focus on whether it has natural proportions, coherent geometry, and clear details. Ignore style differences for this example.</p>
+                <p class="training-focus">Compare the clarity of the boat's shape and surface across all four views. Look for floating blobs, blurred halos, and artifacts that obscure the object.</p>
                 <div class="question-content">
                     <div class="left-column">
-                        <div class="prompt">A cat</div>
+                        <div class="prompt">A boat</div>
                         <div class="style-reference">
                             <p>Style Reference</p>
-                            <img src="training_examples/object_quality_good/style.png?v=20260904-training" alt="Starry night style reference">
+                            <img src="training_examples/oq_boat_good/style.png?v=20260909-original-examples" alt="Wave style reference">
                         </div>
                     </div>
                     <div class="right-column">
                         <div class="image-section">
-                            <div class="image-group attention-degraded">
+                            <div class="image-group">
                                 <div class="method-label"><span class="method-label-left">Method A</span></div>
                                 <div class="views-grid">
-                                    <img src="training_examples/object_quality_good/rgb_0.png?v=20260904-training" alt="Method A view 0">
-                                    <img src="training_examples/object_quality_good/rgb_30.png?v=20260904-training" alt="Method A view 30">
-                                    <img src="training_examples/object_quality_good/rgb_60.png?v=20260904-training" alt="Method A view 60">
-                                    <img src="training_examples/object_quality_good/rgb_90.png?v=20260904-training" alt="Method A view 90">
+                                    <img src="training_examples/oq_boat_artifacts/rgb_0.png?v=20260909-original-examples" alt="Method A view 0">
+                                    <img src="training_examples/oq_boat_artifacts/rgb_30.png?v=20260909-original-examples" alt="Method A view 30">
+                                    <img src="training_examples/oq_boat_artifacts/rgb_60.png?v=20260909-original-examples" alt="Method A view 60">
+                                    <img src="training_examples/oq_boat_artifacts/rgb_90.png?v=20260909-original-examples" alt="Method A view 90">
                                 </div>
                             </div>
                             <div class="image-group training-good">
                                 <div class="method-label"><span class="method-label-right">Method B</span></div>
                                 <div class="views-grid">
-                                    <img src="training_examples/object_quality_good/rgb_0.png?v=20260904-training" alt="Method B view 0">
-                                    <img src="training_examples/object_quality_good/rgb_30.png?v=20260904-training" alt="Method B view 30">
-                                    <img src="training_examples/object_quality_good/rgb_60.png?v=20260904-training" alt="Method B view 60">
-                                    <img src="training_examples/object_quality_good/rgb_90.png?v=20260904-training" alt="Method B view 90">
+                                    <img src="training_examples/oq_boat_good/rgb_0.png?v=20260909-original-examples" alt="Method B view 0">
+                                    <img src="training_examples/oq_boat_good/rgb_30.png?v=20260909-original-examples" alt="Method B view 30">
+                                    <img src="training_examples/oq_boat_good/rgb_60.png?v=20260909-original-examples" alt="Method B view 60">
+                                    <img src="training_examples/oq_boat_good/rgb_90.png?v=20260909-original-examples" alt="Method B view 90">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="training-answer">
-                    <strong>Answer: Method B is better.</strong> Method B preserves the cat's natural proportions and coherent geometry. Method A is visibly compressed and incomplete, so it has lower overall object quality.
+                    <strong>Answer: Method B is better.</strong> Method A has large blue halos and floating, blurred patches around the boat that obscure its shape and surface. Method B has a more clearly defined hull and cabin, with substantially less surrounding haze. It still has some small artifacts, but is better overall.
                 </div>
             </div>
 
             <div class="training-card" id="trainingStyleAlignment">
                 <h2>Example 2: Style Alignment</h2>
-                <p class="training-focus">Which object better matches the style reference? Focus on the colour palette and visual character. Both sides show the same object and seed.</p>
+                <p class="training-focus">Look for the reference image's pattern on the object, as well as its colours. Here, the reference consists of a grid of coloured square tiles.</p>
                 <div class="question-content">
                     <div class="left-column">
-                        <div class="prompt">A rabbit</div>
+                        <div class="prompt">A toy car</div>
                         <div class="style-reference">
                             <p>Style Reference</p>
-                            <img src="training_examples/style_alignment_vangogh/style.png?v=20260904-training" alt="Van Gogh style reference">
+                            <img src="training_examples/sa_car_pattern/style.png?v=20260909-original-examples" alt="Mosaic style reference">
                         </div>
                     </div>
                     <div class="right-column">
@@ -1275,26 +1275,26 @@
                             <div class="image-group training-good">
                                 <div class="method-label"><span class="method-label-left">Method A</span></div>
                                 <div class="views-grid">
-                                    <img src="training_examples/style_alignment_vangogh/rgb_0.png?v=20260904-training" alt="Method A view 0">
-                                    <img src="training_examples/style_alignment_vangogh/rgb_30.png?v=20260904-training" alt="Method A view 30">
-                                    <img src="training_examples/style_alignment_vangogh/rgb_60.png?v=20260904-training" alt="Method A view 60">
-                                    <img src="training_examples/style_alignment_vangogh/rgb_90.png?v=20260904-training" alt="Method A view 90">
+                                    <img src="training_examples/sa_car_pattern/rgb_0.png?v=20260909-original-examples" alt="Method A view 0">
+                                    <img src="training_examples/sa_car_pattern/rgb_30.png?v=20260909-original-examples" alt="Method A view 30">
+                                    <img src="training_examples/sa_car_pattern/rgb_60.png?v=20260909-original-examples" alt="Method A view 60">
+                                    <img src="training_examples/sa_car_pattern/rgb_90.png?v=20260909-original-examples" alt="Method A view 90">
                                 </div>
                             </div>
                             <div class="image-group">
                                 <div class="method-label"><span class="method-label-right">Method B</span></div>
                                 <div class="views-grid">
-                                    <img src="training_examples/style_alignment_fire/rgb_0.png?v=20260904-training" alt="Method B view 0">
-                                    <img src="training_examples/style_alignment_fire/rgb_30.png?v=20260904-training" alt="Method B view 30">
-                                    <img src="training_examples/style_alignment_fire/rgb_60.png?v=20260904-training" alt="Method B view 60">
-                                    <img src="training_examples/style_alignment_fire/rgb_90.png?v=20260904-training" alt="Method B view 90">
+                                    <img src="training_examples/sa_car_no_pattern/rgb_0.png?v=20260909-original-examples" alt="Method B view 0">
+                                    <img src="training_examples/sa_car_no_pattern/rgb_30.png?v=20260909-original-examples" alt="Method B view 30">
+                                    <img src="training_examples/sa_car_no_pattern/rgb_60.png?v=20260909-original-examples" alt="Method B view 60">
+                                    <img src="training_examples/sa_car_no_pattern/rgb_90.png?v=20260909-original-examples" alt="Method B view 90">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="training-answer">
-                    <strong>Answer: Method A is better.</strong> Method A is closer to the Van Gogh reference in its blue-and-yellow palette and painterly appearance. Method B uses a fire-like red and orange style.
+                    <strong>Answer: Method A is better.</strong> Method A shows repeated coloured tile-like blocks on the car's body and wheels, corresponding to the reference's mosaic pattern. Method B mainly has a mottled brown texture without a clear coloured-square pattern. Judge the correspondence of the pattern as well as the colour palette.
                 </div>
             </div>
         </section>
@@ -1495,21 +1495,18 @@
             // Assign the 20 main trials first, then randomize their order.
             shuffle(mainQuestions);
 
-            // Place one shuffled check in each separated presentation window.
+            // Keep AC1–AC4 in definition order at trials 4, 10, 16, and 22.
             const sidesByCriterion = {
                 overallQuality: shuffle(['left', 'right']),
                 styleAlignment: shuffle(['left', 'right'])
             };
-            const attentionChecks = shuffle([...ATTENTION_CHECK_DEFINITIONS]).map(
+            const attentionChecks = ATTENTION_CHECK_DEFINITIONS.map(
                 definition => createAttentionCheck(
                     definition,
                     sidesByCriterion[definition.targetCriterion].pop()
                 )
             );
-            const windows = [[2, 4], [8, 10], [14, 16], [20, 22]];
-            const attentionSlots = new Set(windows.map(([start, end]) =>
-                start + Math.floor(Math.random() * (end - start + 1))
-            ));
+            const attentionSlots = new Set([3, 9, 15, 21]);
             studyData.questions = [];
             let mainIndex = 0;
             let attentionIndex = 0;
