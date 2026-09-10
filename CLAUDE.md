@@ -28,7 +28,7 @@ Page sequence: `startPage` → `infoPage` → `consentPage` → `page0` (task in
 1. User opens `index.html` in a browser and lands on a welcome page (`startPage`), then reads the "Participant Information Details" page (`infoPage`, content from `../SIC3D_Information_Sheet.docx`).
 2. On the "Participant Consent Details" page (`consentPage`, content from `../SIC3D_consent_form.docx`) the user must tick all 9 consent checkboxes AND enter their email address before the study starts. A highlighted "I agree to all" checkbox (`#consent-check-all`, not counted in the 9) ticks/unticks all of them and stays in sync with the individual boxes. The email is checked against the Firestore `participants` collection — an email that already participated is rejected. Emails in `TEST_EMAILS` bypass the check, are not registered, and their results carry `isTest: true`. The consent time is recorded as `consentTimestamp`.
 3. Reads the evaluation criteria (2 questions; Overall Object Quality is explained via 5 underlying aspects)
-4. Compares 4-view renderings for 20 items assigned from a fixed 30-item pool plus 4 interleaved attention checks
+4. Completes 4 attention checks first, then compares 4-view renderings for 20 items assigned from a fixed 30-item pool
 5. For each sample answers both questions (shown side by side) by selecting: "Method A is better" / "Method B is better" / "Cannot decide"
 6. Submits — results upload to Firestore (`study_results` collection in project `sic3d-user-study`). If the tab is hidden or closed before finishing, a partial document (`partial: true`) is auto-saved.
 
@@ -40,14 +40,15 @@ Page sequence: `startPage` → `infoPage` → `consentPage` → `page0` (task in
 - **Methods**: `SIC3D`, `g-style`, `sgsst`, `styleGS`, and `style_prompt`.
 - **Images**: Stored in `samples/s{1..30}/{method}/`, named `rgb_{view}.png` plus one `style.png`.
 - **Views**: Fixed at 4 angles [0, 30, 60, 90] degrees
-- **Attention checks**: Two checks target Overall Object Quality using failed/degraded geometry with style held fixed; two target Style Alignment using the same object and seed with a wrong style. The four fixed examples appear in AC1–AC4 order at trials 4, 10, 16, and 22. Correct sides remain randomized and balanced one A/one B within each criterion. Only the designated criterion determines pass/fail. More than one failed check makes the record ineligible for analysis.
+- **Attention checks**: Two checks target Overall Object Quality using original failed geometry or rendering artifacts with style held fixed; two target Style Alignment using the same object and seed with a wrong style. AC2 uses robot horse/wave, prompt ID 70, seed 32042: g-style is relatively better than style_prompt with its large blue halos. The four fixed examples appear in AC1–AC4 order at trials 1, 2, 3, and 4. Correct sides remain randomized and balanced one A/one B within each criterion. Only the designated criterion determines pass/fail. More than one failed check makes the record ineligible for analysis.
+- **Image integrity**: Display original renders with proportional sizing. Do not add affine transformations, cropping, filters, or hover zoom to any study images, including examples and attention checks.
 - **Results**: Submitted via `saveToFirestoreData()`. Assignment audit fields are stored at document and trial level in addition to sample/method metadata and `overallQuality`/`styleAlignment`. Attention checks have no method identities and store their ID, correct answer, and pass/fail result.
 
 ## Key JavaScript Functions
 
 | Function | Purpose |
 |----------|---------|
-| `generateStudyData()` | Assigns 20 balanced main trials from `p`, randomizes them, then inserts four separated attention checks. |
+| `generateStudyData()` | Assigns 20 balanced main trials from `p`, randomizes them, and places AC1–AC4 before them. |
 | `createQuestionPages()` | Dynamically builds the question pages from `studyData.questions` (two criterion blocks side by side + one Next button) |
 | `markCriteriaAnswered()` | Enables the page's Next button once both questions are answered |
 | `goToNext()` | Validates both answers, saves them, navigates to next sample (or submits) |

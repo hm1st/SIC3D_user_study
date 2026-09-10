@@ -369,24 +369,10 @@
         .views-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .views-grid img {
             width: 100%;
-            aspect-ratio: 1;
-            object-fit: cover;
+            height: auto;
+            object-fit: contain;
             border-radius: 6px;
             border: 2px solid #dee2e6;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .views-grid img:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .attention-degraded .views-grid img {
-            clip-path: polygon(0 0, 62% 0, 42% 48%, 68% 100%, 0 100%);
-            transform: scaleX(0.55) scaleY(1.05) skewY(8deg);
-            transform-origin: center;
-        }
-        .attention-degraded .views-grid img:hover {
-            transform: scaleX(0.55) scaleY(1.05) skewY(8deg);
-            box-shadow: none;
         }
 
         .criteria-table {
@@ -1325,7 +1311,7 @@
         const TOTAL_TRIALS = NUM_QUESTIONS + NUM_ATTENTION_CHECKS;
         const SAMPLE_STRIDE = 2;
         const FIXED_VIEWS = [0, 30, 60, 90];
-        const ASSET_VERSION = '20260824-attention-checks';
+        const ASSET_VERSION = '20260910-original-attention-checks';
 
         const ALL_METHODS = ['SIC3D', 'g-style', 'sgsst', 'styleGS', 'style_prompt'];
         const METHOD_PAIRS = [];
@@ -1358,16 +1344,15 @@
             },
             {
                 id: 'AC2',
-                type: 'geometry-degradation',
+                type: 'rendering-artifacts',
                 targetCriterion: 'overallQuality',
-                prompt: 'A lego castle',
-                style: 'northern light',
-                promptId: 99,
-                seed: 9258,
-                styleSource: { sample: 24, method: 'sgsst' },
-                valid: { sample: 24, method: 'sgsst' },
-                invalid: { sample: 24, method: 'sgsst' },
-                degradeInvalid: true
+                prompt: 'A robot horse',
+                style: 'wave',
+                promptId: 70,
+                seed: 32042,
+                styleSource: { sample: 17, method: 'g-style' },
+                valid: { sample: 17, method: 'g-style' },
+                invalid: { sample: 17, method: 'style_prompt' }
             },
             {
                 id: 'AC3',
@@ -1455,10 +1440,7 @@
                 attentionCheckId: definition.id,
                 attentionCheckType: definition.type,
                 attentionCheckTarget: definition.targetCriterion,
-                correctSide: correctSide,
-                degradedSide: definition.degradeInvalid
-                    ? (validOnLeft ? 'right' : 'left')
-                    : null
+                correctSide: correctSide
             };
         }
 
@@ -1495,7 +1477,7 @@
             // Assign the 20 main trials first, then randomize their order.
             shuffle(mainQuestions);
 
-            // Keep AC1–AC4 in definition order at trials 4, 10, 16, and 22.
+            // Present AC1–AC4 first, followed by the 20 randomized main trials.
             const sidesByCriterion = {
                 overallQuality: shuffle(['left', 'right']),
                 styleAlignment: shuffle(['left', 'right'])
@@ -1506,15 +1488,7 @@
                     sidesByCriterion[definition.targetCriterion].pop()
                 )
             );
-            const attentionSlots = new Set([3, 9, 15, 21]);
-            studyData.questions = [];
-            let mainIndex = 0;
-            let attentionIndex = 0;
-            for (let position = 0; position < TOTAL_TRIALS; position++) {
-                studyData.questions.push(attentionSlots.has(position)
-                    ? attentionChecks[attentionIndex++]
-                    : mainQuestions[mainIndex++]);
-            }
+            studyData.questions = [...attentionChecks, ...mainQuestions];
         }
 
         const CRITERIA_INFO = [
@@ -1551,8 +1525,6 @@
                 ).join('');
                 const styleImgPath = q.styleImgPath ||
                     assetPath(q.questionNum, q.method1, 'style.png');
-                const methodAClass = q.degradedSide === 'left' ? ' attention-degraded' : '';
-                const methodBClass = q.degradedSide === 'right' ? ' attention-degraded' : '';
 
                 // 创建两个并排的 criterion 块
                 let criteriaBlocks = '<div class="criteria-blocks">';
@@ -1617,11 +1589,11 @@
                             </div>
                             <div class="right-column">
                                 <div class="image-section">
-                                    <div class="image-group${methodAClass}">
+                                    <div class="image-group">
                                         <div class="method-label"><span class="method-label-left">Method A</span></div>
                                         <div class="views-grid">${methodAViewsHTML}</div>
                                     </div>
-                                    <div class="image-group${methodBClass}">
+                                    <div class="image-group">
                                         <div class="method-label"><span class="method-label-right">Method B</span></div>
                                         <div class="views-grid">${methodBViewsHTML}</div>
                                     </div>

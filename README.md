@@ -7,7 +7,7 @@ stylised text-to-3D methods on Overall Object Quality and Style Alignment.
 
 Open `index.html` in a modern browser. A participant reads the information
 sheet, accepts all consent statements, enters an email address, reads the task
-guide, evaluates 20 assigned samples plus 4 interleaved attention checks, and
+guide, completes 4 attention checks followed by 20 assigned samples, and
 submits to Firestore.
 
 For local testing, use the test email in `TEST_EMAILS`. Add
@@ -35,10 +35,14 @@ shuffled; A/B placement is randomized independently per trial.
 ## Attention Checks
 
 Four checks are added after the 20 main trials are assigned. Two target Overall
-Object Quality using failed or severely degraded geometry while holding the
+Object Quality using original failed geometry or rendering artifacts while holding the
 style condition fixed. Two target Style Alignment using the same object and
 seed rendered with a deliberately incorrect style.
-AC1, AC2, AC3, and AC4 appear in fixed order at trials 4, 10, 16, and 22
+AC2 uses original robot-horse/wave renders (prompt ID 70, seed 32042):
+g-style versus style_prompt, whose large blue halos obscure the object.
+All displayed renders preserve their original aspect ratio without cropping,
+affine transformations, image filters, or hover zoom.
+AC1, AC2, AC3, and AC4 appear in fixed order at trials 1, 2, 3, and 4
 of the 24-trial questionnaire. The intact side is randomized with exactly two correct-A and two
 correct-B checks per participant, with one A and one B correct answer for each
 criterion. Only the designated target criterion determines whether a check
